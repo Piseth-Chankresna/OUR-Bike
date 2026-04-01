@@ -1,0 +1,106 @@
+<div class="otp-verification-container">
+  <div class="otp-verification-card glass-effect">
+    <!-- Logo and Title -->
+    <div class="text-center mb-4">
+      <div class="logo mb-3">
+        <i class="bi bi-shield-check"></i>
+      </div>
+      <h1 class="heading-2">Verify OTP</h1>
+      <p class="text-secondary">Enter the 6-digit code sent to your email</p>
+    </div>
+
+    <!-- Email Display -->
+    <div class="email-display text-center mb-4">
+      <i class="bi bi-envelope me-2"></i>
+      <span>{{ email }}</span>
+    </div>
+
+    <!-- Success Message -->
+    <div *ngIf="successMessage" class="alert alert-success fade-in" role="alert">
+      <i class="bi bi-check-circle me-2"></i>
+      {{ successMessage }}
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="alert alert-danger fade-in" role="alert">
+      <i class="bi bi-exclamation-triangle me-2"></i>
+      {{ errorMessage }}
+    </div>
+
+    <!-- Timer -->
+    <div class="timer-display text-center mb-4" *ngIf="timeLeft > 0">
+      <div class="timer-text">
+        <i class="bi bi-clock me-2"></i>
+        Code expires in: <span class="time-value">{{ formatTime(timeLeft) }}</span>
+      </div>
+    </div>
+
+    <!-- OTP Form -->
+    <form [formGroup]="otpForm" (ngSubmit)="onSubmit()" class="otp-form">
+      <!-- OTP Input Fields -->
+      <div class="otp-inputs mb-4">
+        <div class="otp-input-group">
+          <input
+            type="text"
+            maxlength="1"
+            class="otp-input"
+            formControlName="otp"
+            placeholder="•"
+            [class.is-invalid]="otp?.invalid && otp?.touched"
+            autocomplete="off"
+          >
+          <div class="otp-visual">
+            <span class="otp-digit" *ngFor="let i of [0,1,2,3,4,5]">
+              {{ getOtpDigit(i) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        class="btn btn-primary w-100 mb-3"
+        [disabled]="otpForm.invalid || isLoading"
+      >
+        <span *ngIf="!isLoading">
+          <i class="bi bi-check-circle me-2"></i>
+          Verify OTP
+        </span>
+        <span *ngIf="isLoading">
+          <span class="spinner spinner-border spinner-border-sm me-2" role="status"></span>
+          Verifying...
+        </span>
+      </button>
+
+      <!-- Resend OTP -->
+      <div class="resend-section text-center">
+        <button 
+          type="button" 
+          class="btn btn-link" 
+          (click)="resendOTP()"
+          [disabled]="!canResend"
+        >
+          <i class="bi bi-arrow-clockwise me-2"></i>
+          Resend OTP
+        </button>
+        <div *ngIf="timeLeft <= 0" class="resend-message">
+          <small class="text-muted">Didn't receive the code? Request a new one.</small>
+        </div>
+      </div>
+    </form>
+
+    <!-- Navigation Options -->
+    <div class="navigation-options mt-4">
+      <div class="text-center">
+        <a 
+          routerLink="/auth/forgot-password" 
+          class="text-primary text-decoration-none"
+        >
+          <i class="bi bi-arrow-left me-1"></i>
+          Back to Forgot Password
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

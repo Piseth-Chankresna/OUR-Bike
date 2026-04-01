@@ -1,0 +1,65 @@
+<div class="auth-selection-container">
+  <div class="auth-selection-card glass-effect">
+    <!-- Logo and Title -->
+    <div class="text-center mb-5">
+      <div class="logo mb-3">
+        <i class="bi bi-lightning-charge-fill"></i>
+      </div>
+      <h1 class="title">OUR-Bikes</h1>
+      <p class="subtitle">Choose your account type</p>
+    </div>
+
+    <!-- Selection Cards -->
+    <div class="selection-grid">
+      <!-- User Option -->
+      <div class="selection-card user-card" (click)="selectUser()">
+        <div class="card-icon">
+          <i class="bi bi-person-circle"></i>
+        </div>
+        <h3 class="card-title">User Account</h3>
+        <p class="card-description">
+          Shop for motocross bikes, accessories, and manage your orders
+        </p>
+        <ul class="card-features">
+          <li><i class="bi bi-check-circle"></i> Browse products</li>
+          <li><i class="bi bi-check-circle"></i> Add to favorites</li>
+          <li><i class="bi bi-check-circle"></i> Shopping cart</li>
+          <li><i class="bi bi-check-circle"></i> Order tracking</li>
+        </ul>
+        <button class="btn btn-user">
+          <i class="bi bi-box-arrow-in-right me-2"></i>
+          Continue as User
+        </button>
+      </div>
+
+      <!-- Admin Option -->
+      <div class="selection-card admin-card" (click)="selectAdmin()">
+        <div class="card-icon">
+          <i class="bi bi-shield-lock"></i>
+        </div>
+        <h3 class="card-title">Admin Account</h3>
+        <p class="card-description">
+          Manage store, products, users, and view analytics
+        </p>
+        <ul class="card-features">
+          <li><i class="bi bi-check-circle"></i> Product management</li>
+          <li><i class="bi bi-check-circle"></i> User management</li>
+          <li><i class="bi bi-check-circle"></i> Order management</li>
+          <li><i class="bi bi-check-circle"></i> Analytics dashboard</li>
+        </ul>
+        <button class="btn btn-admin">
+          <i class="bi bi-shield-check me-2"></i>
+          Continue as Admin
+        </button>
+      </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="text-center mt-4">
+      <button class="btn btn-back" (click)="goBack()">
+        <i class="bi bi-house me-2"></i>
+        Back to Home
+      </button>
+    </div>
+  </div>
+</div>

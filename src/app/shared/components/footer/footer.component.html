@@ -1,0 +1,151 @@
+<footer class="main-footer glass-effect">
+  <div class="footer-container">
+    <div class="footer-content">
+      <!-- About Section -->
+      <div class="footer-section">
+        <h5 class="footer-title">About OUR-Bikes</h5>
+        <p class="footer-text">
+          Your premier destination for motorcross bikes, accessories, and gear. 
+          We provide top-quality products for enthusiasts and professionals alike.
+        </p>
+        <!-- Newsletter Subscription -->
+        <div class="newsletter-section">
+          <h6 class="newsletter-title">Subscribe to Our Newsletter</h6>
+          <form [formGroup]="newsletterForm" (ngSubmit)="onNewsletterSubmit()" class="newsletter-form">
+            <div class="input-group">
+              <input 
+                type="email" 
+                class="form-control newsletter-input" 
+                placeholder="Enter your email"
+                formControlName="email"
+                [class.is-invalid]="newsletterForm.get('email')?.invalid && newsletterForm.get('email')?.touched"
+              >
+              <button type="submit" class="btn btn-primary newsletter-btn" [disabled]="newsletterForm.invalid">
+                <i class="bi bi-send-fill me-1"></i>Subscribe
+              </button>
+            </div>
+            <div class="invalid-feedback" *ngIf="newsletterForm.get('email')?.invalid && newsletterForm.get('email')?.touched">
+              Please enter a valid email address
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Contact Information -->
+      <div class="footer-section">
+        <h5 class="footer-title">Contact Us</h5>
+        <div class="contact-info">
+          <div class="contact-item">
+            <i class="bi bi-telephone-fill me-2"></i>
+            <span>+855 962518149 | +855 883831427</span>
+          </div>
+          <div class="contact-item">
+            <i class="bi bi-whatsapp me-2"></i>
+            <span>+855 96 251 8149</span>
+          </div>
+          <div class="contact-item">
+            <i class="bi bi-telegram me-2"></i>
+            <span>@pisethchankresnatele</span>
+          </div>
+          <div class="contact-item">
+            <i class="bi bi-envelope-fill me-2"></i>
+            <span>info@ourbikes.com</span>
+          </div>
+          <div class="contact-item">
+            <i class="bi bi-geo-alt-fill me-2"></i>
+            <span>Phnom Penh, Cambodia</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Social Media Links -->
+      <div class="footer-section">
+        <h5 class="footer-title">Follow Us</h5>
+        <div class="social-links">
+          <a href="https://www.facebook.com/revera.yooza" target="_blank" rel="noopener" class="social-link">
+            <i class="bi bi-facebook"></i>
+          </a>
+          <a href="https://www.instagram.com/revera.yooza/" target="_blank" rel="noopener" class="social-link">
+            <i class="bi bi-instagram"></i>
+          </a>
+          <a href="https://t.me/pisethchankresnatele" target="_blank" rel="noopener" class="social-link">
+            <i class="bi bi-telegram"></i>
+          </a>
+          <a href="https://www.youtube.com" target="_blank" rel="noopener" class="social-link">
+            <i class="bi bi-youtube"></i>
+          </a>
+          <a href="https://www.twitter.com" target="_blank" rel="noopener" class="social-link">
+            <i class="bi bi-twitter-x"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="footer-section">
+        <h5 class="footer-title">Quick Links</h5>
+        <ul class="footer-links">
+          <li><a routerLink="/products" class="footer-link">Shop All Products</a></li>
+          <li><a routerLink="/products?category=bikes" class="footer-link">Motorbikes</a></li>
+          <li><a routerLink="/products?category=accessory" class="footer-link">Accessories</a></li>
+          <li><a routerLink="/products?category=souvenir" class="footer-link">Souvenirs</a></li>
+          <li><a routerLink="/products?category=tool" class="footer-link">Tools</a></li>
+          <li><a routerLink="/auth/login" class="footer-link">My Account</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Payment Methods -->
+    <div class="payment-methods-section">
+      <h6 class="payment-title">We Accept</h6>
+      <div class="payment-methods">
+        <div class="payment-method">
+          <i class="bi bi-credit-card-fill"></i>
+          <span>Credit Card</span>
+        </div>
+        <div class="payment-method">
+          <i class="bi bi-wallet2"></i>
+          <span>Debit Card</span>
+        </div>
+        <div class="payment-method">
+          <i class="bi bi-cash-stack"></i>
+          <span>Cash</span>
+        </div>
+        <div class="payment-method">
+          <i class="bi bi-phone"></i>
+          <span>Mobile Banking</span>
+        </div>
+        <div class="payment-method">
+          <i class="bi bi-currency-bitcoin"></i>
+          <span>Crypto</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Copyright -->
+    <div class="footer-bottom">
+      <div class="copyright">
+        <p>&copy; {{ currentYear }} OUR-Bikes Store. All rights reserved.</p>
+      </div>
+      <div class="footer-links-bottom">
+        <a routerLink="/privacy" class="footer-link-small">Privacy Policy</a>
+        <span class="separator">|</span>
+        <a routerLink="/terms" class="footer-link-small">Terms of Service</a>
+        <span class="separator">|</span>
+        <a routerLink="/faq" class="footer-link-small">FAQ</a>
+        <span class="separator">|</span>
+        <a routerLink="/shipping" class="footer-link-small">Shipping Info</a>
+        <span class="separator">|</span>
+        <a routerLink="/returns" class="footer-link-small">Returns</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Back to Top Button -->
+  <button 
+    class="back-to-top" 
+    [class.show]="showBackToTop" 
+    (click)="scrollToTop()"
+    aria-label="Back to top">
+    <i class="bi bi-arrow-up-circle-fill"></i>
+  </button>
+</footer>

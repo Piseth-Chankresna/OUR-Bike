@@ -1,0 +1,603 @@
+<div class="enhanced-admin-dashboard">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading analytics...</span>
+      </div>
+      <p class="mt-3 text-secondary">Loading dashboard analytics...</p>
+    </div>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div *ngIf="!isLoading && analytics" class="dashboard-content">
+    <!-- Header -->
+    <div class="dashboard-header">
+      <div class="header-content">
+        <div class="header-title">
+          <h1 class="dashboard-title">
+            <i class="bi bi-speedometer2 me-2"></i>
+            Admin Dashboard
+          </h1>
+          <p class="dashboard-subtitle">
+            Real-time analytics and system monitoring
+            <span *ngIf="lastUpdated" class="last-updated">
+              Last updated: {{ formatTimeAgo(lastUpdated) }}
+            </span>
+          </p>
+        </div>
+        
+        <div class="header-actions">
+          <div class="refresh-controls">
+            <button class="btn btn-outline-primary btn-sm" (click)="refreshAnalytics()">
+              <i class="bi bi-arrow-clockwise me-1"></i>
+              Refresh
+            </button>
+            <button class="btn btn-outline-success btn-sm" (click)="exportFullReport()">
+              <i class="bi bi-download me-1"></i>
+              Export Report
+            </button>
+          </div>
+          
+          <div class="system-health">
+            <div class="health-indicator" [class]="getHealthStatusClass(systemHealth.status)">
+              <i class="bi" [class]="getHealthStatusIcon(systemHealth.status)"></i>
+              {{ systemHealth.status }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alerts Section -->
+    <div *ngIf="alerts.length > 0" class="alerts-section">
+      <div class="alerts-container">
+        <div *ngFor="let alert of alerts; let i = index" class="alert" [class]="getAlertClass(alert.type)">
+          <div class="alert-content">
+            <div class="alert-icon">
+              <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div class="alert-details">
+              <h6 class="alert-title">{{ alert.message }}</h6>
+              <p class="alert-description">{{ alert.description }}</p>
+              <button class="btn btn-sm btn-outline-light" (click)="viewDetails(alert.action)">
+                {{ alert.action }}
+              </button>
+            </div>
+            <button class="alert-close" (click)="dismissAlert(i)">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="quick-stats-section">
+      <div class="stats-grid">
+        <div class="stat-card revenue">
+          <div class="stat-content">
+            <div class="stat-icon">
+              <i class="bi bi-currency-dollar"></i>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value">{{ formatCurrency(quickStats.revenue) }}</div>
+              <div class="stat-label">Total Revenue</div>
+              <div class="stat-change" [class]="getGrowthClass(quickStats.growth)">
+                <i class="bi" [class]="getGrowthIcon(quickStats.growth)"></i>
+                {{ formatPercentage(quickStats.growth) }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card orders">
+          <div class="stat-content">
+            <div class="stat-icon">
+              <i class="bi bi-shopping-cart"></i>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value">{{ formatNumber(quickStats.orders) }}</div>
+              <div class="stat-label">Total Orders</div>
+              <div class="stat-change text-success">
+                <i class="bi bi-arrow-up"></i>
+                +12.5%
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card users">
+          <div class="stat-content">
+            <div class="stat-icon">
+              <i class="bi bi-people"></i>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value">{{ formatNumber(quickStats.users) }}</div>
+              <div class="stat-label">Total Users</div>
+              <div class="stat-change text-success">
+                <i class="bi bi-arrow-up"></i>
+                +8.3%
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card products">
+          <div class="stat-content">
+            <div class="stat-icon">
+              <i class="bi bi-box"></i>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value">{{ formatNumber(quickStats.products) }}</div>
+              <div class="stat-label">Products</div>
+              <div class="stat-change text-warning">
+                <i class="bi bi-dash"></i>
+                0%
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-section">
+      <div class="charts-grid">
+        <!-- Revenue Chart -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <h5 class="chart-title">
+              <i class="bi bi-graph-up me-2"></i>
+              Revenue Trends
+            </h5>
+            <div class="chart-actions">
+              <select class="form-select form-select-sm">
+                <option>Last 30 Days</option>
+                <option>Last 90 Days</option>
+                <option>Last Year</option>
+              </select>
+            </div>
+          </div>
+          <div class="chart-content">
+            <div class="chart-placeholder">
+              <i class="bi bi-bar-chart display-4 text-muted"></i>
+              <p class="mt-3 text-muted">Revenue chart would be displayed here</p>
+              <small class="text-muted">Chart.js integration needed</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Growth Chart -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <h5 class="chart-title">
+              <i class="bi bi-people me-2"></i>
+              User Growth
+            </h5>
+            <div class="chart-actions">
+              <select class="form-select form-select-sm">
+                <option>Last 30 Days</option>
+                <option>Last 90 Days</option>
+                <option>Last Year</option>
+              </select>
+            </div>
+          </div>
+          <div class="chart-content">
+            <div class="chart-placeholder">
+              <i class="bi bi-graph-up-arrow display-4 text-muted"></i>
+              <p class="mt-3 text-muted">User growth chart would be displayed here</p>
+              <small class="text-muted">Chart.js integration needed</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product Performance Chart -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <h5 class="chart-title">
+              <i class="bi bi-box-seam me-2"></i>
+              Top Products
+            </h5>
+            <div class="chart-actions">
+              <button class="btn btn-sm btn-outline-primary">View All</button>
+            </div>
+          </div>
+          <div class="chart-content">
+            <div class="product-list">
+              <div *ngFor="let product of salesAnalytics?.topProducts?.slice(0, 5) || []" class="product-item">
+                <div class="product-info">
+                  <div class="product-name">{{ product.productName }}</div>
+                  <div class="product-category">{{ product.category }}</div>
+                </div>
+                <div class="product-stats">
+                  <div class="product-revenue">{{ formatCurrency(product.revenue) }}</div>
+                  <div class="product-sales">{{ formatNumber(product.totalSales) }} sold</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order Status Chart -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <h5 class="chart-title">
+              <i class="bi bi-truck me-2"></i>
+              Order Status
+            </h5>
+            <div class="chart-actions">
+              <button class="btn btn-sm btn-outline-primary">View Orders</button>
+            </div>
+          </div>
+          <div class="chart-content">
+            <div class="status-list">
+              <div *ngFor="let status of orderAnalytics?.orderStatus" class="status-item">
+                <div class="status-info">
+                  <div class="status-name">{{ status.status }}</div>
+                  <div class="status-count">{{ formatNumber(status.count) }}</div>
+                </div>
+                <div class="status-bar">
+                  <div class="status-progress" [style.width.%]="status.percentage"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detailed Analytics Section -->
+    <div class="detailed-analytics">
+      <div class="analytics-tabs">
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+          <button class="tab-btn active" data-tab="overview">
+            <i class="bi bi-speedometer2 me-2"></i>
+            Overview
+          </button>
+          <button class="tab-btn" data-tab="sales">
+            <i class="bi bi-currency-dollar me-2"></i>
+            Sales
+          </button>
+          <button class="tab-btn" data-tab="users">
+            <i class="bi bi-people me-2"></i>
+            Users
+          </button>
+          <button class="tab-btn" data-tab="products">
+            <i class="bi bi-box me-2"></i>
+            Products
+          </button>
+          <button class="tab-btn" data-tab="orders">
+            <i class="bi bi-truck me-2"></i>
+            Orders
+          </button>
+          <button class="tab-btn" data-tab="performance">
+            <i class="bi bi-gear me-2"></i>
+            Performance
+          </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+          <!-- Overview Tab -->
+          <div class="tab-pane active" id="overview">
+            <div class="overview-grid">
+              <div class="overview-card">
+                <h6 class="card-title">
+                  <i class="bi bi-graph-up me-2"></i>
+                  Key Metrics
+                </h6>
+                <div class="metrics-grid">
+                  <div class="metric-item">
+                    <div class="metric-label">Conversion Rate</div>
+                    <div class="metric-value">{{ formatPercentage(overview?.conversionRate || 0) }}</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric-label">Avg Order Value</div>
+                    <div class="metric-value">{{ formatCurrency(overview?.avgOrderValue || 0) }}</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric-label">Active Users</div>
+                    <div class="metric-value">{{ formatNumber(overview?.activeUsers || 0) }}</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric-label">Bounce Rate</div>
+                    <div class="metric-value">{{ formatPercentage(overview?.bounceRate || 0) }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="overview-card">
+                <h6 class="card-title">
+                  <i class="bi bi-clock-history me-2"></i>
+                  Recent Activity
+                </h6>
+                <div class="activity-list">
+                  <div *ngFor="let activity of recentActivity" class="activity-item">
+                    <div class="activity-icon">
+                      <i class="bi" [class]="getActivityIcon(activity.type)"></i>
+                    </div>
+                    <div class="activity-details">
+                      <div class="activity-message">{{ activity.message }}</div>
+                      <div class="activity-time">{{ formatTimeAgo(activity.timestamp) }}</div>
+                    </div>
+                    <div class="activity-user">{{ activity.user }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sales Tab -->
+          <div class="tab-pane" id="sales">
+            <div class="sales-grid">
+              <div class="sales-card">
+                <h6 class="card-title">
+                  <i class="bi bi-graph-up me-2"></i>
+                  Sales Forecast
+                </h6>
+                <div class="forecast-grid">
+                  <div class="forecast-item">
+                    <div class="forecast-period">Next Month</div>
+                    <div class="forecast-value">{{ formatCurrency(salesAnalytics?.forecast?.nextMonth || 0) }}</div>
+                  </div>
+                  <div class="forecast-item">
+                    <div class="forecast-period">Next Quarter</div>
+                    <div class="forecast-value">{{ formatCurrency(salesAnalytics?.forecast?.nextQuarter || 0) }}</div>
+                  </div>
+                  <div class="forecast-item">
+                    <div class="forecast-period">Next Year</div>
+                    <div class="forecast-value">{{ formatCurrency(salesAnalytics?.forecast?.nextYear || 0) }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="sales-card">
+                <h6 class="card-title">
+                  <i class="bi bi-tags me-2"></i>
+                  Revenue by Category
+                </h6>
+                <div class="category-list">
+                  <div *ngFor="let category of salesAnalytics?.revenueByCategory" class="category-item">
+                    <div class="category-info">
+                      <div class="category-name">{{ category.category }}</div>
+                      <div class="category-revenue">{{ formatCurrency(category.revenue) }}</div>
+                    </div>
+                    <div class="category-bar">
+                      <div class="category-progress" [style.width.%]="category.percentage"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Users Tab -->
+          <div class="tab-pane" id="users">
+            <div class="users-grid">
+              <div class="users-card">
+                <h6 class="card-title">
+                  <i class="bi bi-person-badge me-2"></i>
+                  User Demographics
+                </h6>
+                <div class="demographics-grid">
+                  <div class="demographic-section">
+                    <h6>By Age</h6>
+                    <div *ngFor="let age of userAnalytics?.userDemographics?.byAge || []" class="demographic-item">
+                      <span class="demographic-label">{{ age.range }}</span>
+                      <span class="demographic-value">{{ formatNumber(age.count) }}</span>
+                    </div>
+                  </div>
+                  <div class="demographic-section">
+                    <h6>By Gender</h6>
+                    <div *ngFor="let gender of userAnalytics?.userDemographics?.byGender || []" class="demographic-item">
+                      <span class="demographic-label">{{ gender.gender }}</span>
+                      <span class="demographic-value">{{ formatNumber(gender.count) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="users-card">
+                <h6 class="card-title">
+                  <i class="bi bi-diagram-3 me-2"></i>
+                  User Segments
+                </h6>
+                <div class="segments-list">
+                  <div *ngFor="let segment of userAnalytics?.userSegments" class="segment-item">
+                    <div class="segment-info">
+                      <div class="segment-name">{{ segment.segment }}</div>
+                      <div class="segment-users">{{ formatNumber(segment.count) }} users</div>
+                    </div>
+                    <div class="segment-stats">
+                      <div class="segment-aov">AOV: {{ formatCurrency(segment.avgOrderValue) }}</div>
+                      <div class="segment-ltv">LTV: {{ formatCurrency(segment.lifetimeValue) }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Products Tab -->
+          <div class="tab-pane" id="products">
+            <div class="products-grid">
+              <div class="products-card">
+                <h6 class="card-title">
+                  <i class="bi bi-box-seam me-2"></i>
+                  Inventory Status
+                </h6>
+                <div class="inventory-grid">
+                  <div class="inventory-item">
+                    <div class="inventory-label">Total Products</div>
+                    <div class="inventory-value">{{ formatNumber(productAnalytics?.totalProducts || 0) }}</div>
+                  </div>
+                  <div class="inventory-item">
+                    <div class="inventory-label">Active</div>
+                    <div class="inventory-value text-success">{{ formatNumber(productAnalytics?.activeProducts || 0) }}</div>
+                  </div>
+                  <div class="inventory-item">
+                    <div class="inventory-label">Out of Stock</div>
+                    <div class="inventory-value text-danger">{{ formatNumber(productAnalytics?.outOfStock || 0) }}</div>
+                  </div>
+                  <div class="inventory-item">
+                    <div class="inventory-label">Low Stock</div>
+                    <div class="inventory-value text-warning">{{ formatNumber(productAnalytics?.lowStock || 0) }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="products-card">
+                <h6 class="card-title">
+                  <i class="bi bi-graph-up-arrow me-2"></i>
+                  Top Categories
+                </h6>
+                <div class="categories-list">
+                  <div *ngFor="let category of productAnalytics?.topCategories" class="category-performance-item">
+                    <div class="category-info">
+                      <div class="category-name">{{ category.category }}</div>
+                      <div class="category-products">{{ category.productCount }} products</div>
+                    </div>
+                    <div class="category-revenue">{{ formatCurrency(category.totalRevenue) }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Orders Tab -->
+          <div class="tab-pane" id="orders">
+            <div class="orders-grid">
+              <div class="orders-card">
+                <h6 class="card-title">
+                  <i class="bi bi-truck me-2"></i>
+                  Order Statistics
+                </h6>
+                <div class="order-stats-grid">
+                  <div class="order-stat-item">
+                    <div class="order-stat-label">Total Orders</div>
+                    <div class="order-stat-value">{{ formatNumber(orderAnalytics?.totalOrders || 0) }}</div>
+                  </div>
+                  <div class="order-stat-item">
+                    <div class="order-stat-label">Pending</div>
+                    <div class="order-stat-value text-warning">{{ formatNumber(orderAnalytics?.pendingOrders || 0) }}</div>
+                  </div>
+                  <div class="order-stat-item">
+                    <div class="order-stat-label">Completed</div>
+                    <div class="order-stat-value text-success">{{ formatNumber(orderAnalytics?.completedOrders || 0) }}</div>
+                  </div>
+                  <div class="order-stat-item">
+                    <div class="order-stat-label">Cancelled</div>
+                    <div class="order-stat-value text-danger">{{ formatNumber(orderAnalytics?.cancelledOrders || 0) }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="orders-card">
+                <h6 class="card-title">
+                  <i class="bi bi-credit-card me-2"></i>
+                  Payment Methods
+                </h6>
+                <div class="payment-list">
+                  <div *ngFor="let method of orderAnalytics?.paymentAnalytics?.paymentMethods || []" class="payment-item">
+                    <div class="payment-info">
+                      <div class="payment-method">{{ method.method }}</div>
+                      <div class="payment-count">{{ formatNumber(method.count) }} transactions</div>
+                    </div>
+                    <div class="payment-revenue">{{ formatCurrency(method.revenue) }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Performance Tab -->
+          <div class="tab-pane" id="performance">
+            <div class="performance-grid">
+              <div class="performance-card">
+                <h6 class="card-title">
+                  <i class="bi bi-speedometer2 me-2"></i>
+                  System Metrics
+                </h6>
+                <div class="system-metrics-grid">
+                  <div class="system-metric-item">
+                    <div class="metric-label">Uptime</div>
+                    <div class="metric-value" [class]="getPerformanceColor(performanceAnalytics?.systemMetrics?.uptime || 0, 'uptime')">
+                      {{ formatPercentage(performanceAnalytics?.systemMetrics?.uptime || 0) }}
+                    </div>
+                  </div>
+                  <div class="system-metric-item">
+                    <div class="metric-label">Response Time</div>
+                    <div class="metric-value" [class]="getPerformanceColor(performanceAnalytics?.systemMetrics?.responseTime || 0, 'responseTime')">
+                      {{ performanceAnalytics?.systemMetrics?.responseTime || 0 }}ms
+                    </div>
+                  </div>
+                  <div class="system-metric-item">
+                    <div class="metric-label">Error Rate</div>
+                    <div class="metric-value" [class]="getPerformanceColor(performanceAnalytics?.systemMetrics?.errorRate || 0, 'errorRate')">
+                      {{ formatPercentage(performanceAnalytics?.systemMetrics?.errorRate || 0) }}
+                    </div>
+                  </div>
+                  <div class="system-metric-item">
+                    <div class="metric-label">CPU Usage</div>
+                    <div class="metric-value">{{ formatPercentage(performanceAnalytics?.systemMetrics?.cpuUsage || 0) }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="performance-card">
+                <h6 class="card-title">
+                  <i class="bi bi-shield-check me-2"></i>
+                  Security Metrics
+                </h6>
+                <div class="security-metrics-grid">
+                  <div class="security-metric-item">
+                    <div class="metric-label">Security Incidents</div>
+                    <div class="metric-value">{{ formatNumber(performanceAnalytics?.securityMetrics?.securityIncidents || 0) }}</div>
+                  </div>
+                  <div class="security-metric-item">
+                    <div class="metric-label">Blocked Attempts</div>
+                    <div class="metric-value">{{ formatNumber(performanceAnalytics?.securityMetrics?.blockedAttempts || 0) }}</div>
+                  </div>
+                  <div class="security-metric-item">
+                    <div class="metric-label">Compliance Score</div>
+                    <div class="metric-value">{{ formatPercentage(performanceAnalytics?.securityMetrics?.complianceScore || 0) }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <div class="actions-header">
+        <h5 class="actions-title">
+          <i class="bi bi-lightning me-2"></i>
+          Quick Actions
+        </h5>
+      </div>
+      <div class="actions-grid">
+        <button class="action-btn" (click)="quickAddProduct()">
+          <i class="bi bi-plus-circle"></i>
+          <span>Add Product</span>
+        </button>
+        <button class="action-btn" (click)="quickViewOrders()">
+          <i class="bi bi-list-check"></i>
+          <span>View Orders</span>
+        </button>
+        <button class="action-btn" (click)="quickViewUsers()">
+          <i class="bi bi-people"></i>
+          <span>Manage Users</span>
+        </button>
+        <button class="action-btn" (click)="navigateToSettings()">
+          <i class="bi bi-gear"></i>
+          <span>Settings</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

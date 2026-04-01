@@ -1,0 +1,478 @@
+
+// Import SCSS files
+@use './styles/variables' as vars;
+@use './styles/mixins' as mixins;
+@use './styles/typography' as typography;
+
+// Import Bootstrap
+@use 'bootstrap/scss/bootstrap' as *;
+@use 'bootstrap-icons/font/bootstrap-icons' as *;
+
+// Global styles
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  height: 100%;
+  font-size: 16px; // Base font size for responsive scaling
+}
+
+body {
+  background: var(--primary-bg);
+  color: var(--text-primary);
+  font-family: vars.$font-family-body;
+  line-height: 1.6;
+  transition: vars.$transition-base;
+  height: 100%;
+  min-height: 100vh;
+  overflow-x: hidden; // Prevent horizontal scroll
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Scrollbar styling
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--secondary-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 4px;
+  
+  &:hover {
+    background: var(--secondary-color);
+  }
+}
+
+// Selection styling
+::selection {
+  background: var(--primary-color);
+  color: white;
+}
+
+// Focus styles
+:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+// Utility classes
+.glass-effect {
+  @include mixins.glassmorphism();
+}
+
+.btn-primary-custom {
+  @include mixins.button-primary();
+}
+
+.btn-secondary-custom {
+  @include mixins.button-secondary();
+}
+
+.btn-outline-custom {
+  @include mixins.button-outline();
+}
+
+.card-custom {
+  @include mixins.card-base();
+}
+
+.product-card-custom {
+  @include mixins.product-card();
+}
+
+.input-custom {
+  @include mixins.input-base();
+}
+
+// Loading spinner
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--border-color);
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// Container styles
+.container-custom {
+  width: 100%;
+  max-width: 1400px; // Increased for better large screen utilization
+  margin: 0 auto;
+  padding: 0 vars.$spacing-lg;
+  
+  @include mixins.respond-to(xl) {
+    padding: 0 vars.$spacing-xl;
+  }
+  
+  @include mixins.respond-to(lg) {
+    padding: 0 vars.$spacing-lg;
+  }
+  
+  @include mixins.respond-to(md) {
+    padding: 0 vars.$spacing-md;
+  }
+  
+  @include mixins.respond-to(sm) {
+    padding: 0 vars.$spacing-sm;
+  }
+  
+  @include mixins.respond-to(xs) {
+    padding: 0 vars.$spacing-xs;
+  }
+}
+
+.container-fluid-custom {
+  width: 100%;
+  padding: 0 vars.$spacing-md;
+  
+  @include mixins.respond-to(lg) {
+    padding: 0 vars.$spacing-lg;
+  }
+  
+  @include mixins.respond-to(md) {
+    padding: 0 vars.$spacing-md;
+  }
+  
+  @include mixins.respond-to(sm) {
+    padding: 0 vars.$spacing-sm;
+  }
+  
+  @include mixins.respond-to(xs) {
+    padding: 0 vars.$spacing-xs;
+  }
+}
+
+// Full viewport containers
+.container-viewport {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.container-full {
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+}
+
+// Section spacing
+.section {
+  padding: vars.$spacing-3xl 0;
+  width: 100%;
+  
+  &-small {
+    padding: vars.$spacing-xl 0;
+  }
+  
+  &-large {
+    padding: vars.$spacing-3xl 0;
+    
+    @include mixins.respond-to(md) {
+      padding: vars.$spacing-3xl * 1.5 0;
+    }
+  }
+  
+  &-full {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  &-responsive {
+    padding: clamp(vars.$spacing-lg, 5vw, vars.$spacing-3xl) 0;
+  }
+}
+
+// Grid utilities with responsive improvements
+.grid {
+  display: grid;
+  gap: vars.$spacing-lg;
+  width: 100%;
+  
+  &-auto {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    
+    @include mixins.respond-to(sm) {
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+    
+    @include mixins.respond-to(xs) {
+      grid-template-columns: 1fr;
+      gap: vars.$spacing-md;
+    }
+  }
+  
+  &-2 {
+    @include mixins.grid-columns(2);
+    
+    @include mixins.respond-to(sm) {
+      @include mixins.grid-columns(1);
+    }
+  }
+  
+  &-3 {
+    @include mixins.grid-columns(3);
+    
+    @include mixins.respond-to(md) {
+      @include mixins.grid-columns(2);
+    }
+    
+    @include mixins.respond-to(sm) {
+      @include mixins.grid-columns(1);
+    }
+  }
+  
+  &-4 {
+    @include mixins.grid-columns(4);
+    
+    @include mixins.respond-to(lg) {
+      @include mixins.grid-columns(3);
+    }
+    
+    @include mixins.respond-to(md) {
+      @include mixins.grid-columns(2);
+    }
+    
+    @include mixins.respond-to(sm) {
+      @include mixins.grid-columns(1);
+    }
+    
+    @include mixins.respond-to(xs) {
+      @include mixins.grid-columns(1);
+    }
+  }
+  
+  // Responsive grid with flexible columns
+  &-responsive {
+    grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+    gap: clamp(vars.$spacing-md, 3vw, vars.$spacing-xl);
+  }
+}
+
+// Flex utilities
+.flex {
+  display: flex;
+  
+  &-center {
+    @include mixins.flex-center();
+  }
+  
+  &-between {
+    @include mixins.flex-between();
+  }
+  
+  &-column {
+    @include mixins.flex-column();
+  }
+  
+  &-wrap {
+    flex-wrap: wrap;
+  }
+  
+  &-gap {
+    gap: vars.$spacing-md;
+    
+    &-sm {
+      gap: vars.$spacing-sm;
+    }
+    
+    &-lg {
+      gap: vars.$spacing-lg;
+    }
+  }
+}
+
+// Animation utilities
+.fade-in {
+  @include mixins.fade-in();
+}
+
+.slide-up {
+  @include mixins.slide-up();
+}
+
+.slide-in-right {
+  @include mixins.slide-in-right();
+}
+
+// Badge utilities
+.badge {
+  @include mixins.badge-base();
+  
+  &-primary {
+    @include mixins.badge-primary();
+  }
+  
+  &-success {
+    @include mixins.badge-success();
+  }
+  
+  &-warning {
+    @include mixins.badge-warning();
+  }
+  
+  &-danger {
+    @include mixins.badge-danger();
+  }
+}
+
+// Responsive utilities
+.hidden-mobile {
+  @include mixins.respond-to(md) {
+    display: block;
+  }
+  
+  @media (max-width: (vars.$breakpoint-md - 1px)) {
+    display: none;
+  }
+}
+
+.hidden-desktop {
+  @media (min-width: vars.$breakpoint-md) {
+    display: none;
+  }
+  
+  @media (max-width: (vars.$breakpoint-md - 1px)) {
+    display: block;
+  }
+}
+
+// Theme transition
+.theme-transition {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+// Full screen responsive utilities
+.fullscreen {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.viewport-height {
+  height: 100vh;
+}
+
+.viewport-width {
+  width: 100vw;
+}
+
+.min-viewport-height {
+  min-height: 100vh;
+}
+
+// Responsive spacing utilities
+.spacing-responsive {
+  padding: clamp(vars.$spacing-sm, 4vw, vars.$spacing-xl);
+  margin: clamp(vars.$spacing-sm, 4vw, vars.$spacing-xl);
+}
+
+// Responsive typography
+.text-responsive {
+  font-size: clamp(0.875rem, 2vw, 1.25rem);
+  line-height: 1.5;
+}
+
+.heading-responsive {
+  font-size: clamp(1.5rem, 4vw, 3rem);
+  line-height: 1.2;
+}
+
+// Smooth scrolling for all devices
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px; // Account for fixed header
+}
+
+// Ensure all images are responsive
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+// Responsive video embeds
+.video-container {
+  position: relative;
+  padding-bottom: 56.25%; // 16:9 aspect ratio
+  height: 0;
+  overflow: hidden;
+  
+  iframe,
+  object,
+  embed {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+// Touch-friendly tap targets
+@media (pointer: coarse) {
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+// High DPI displays optimization
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+// Reduce motion for users who prefer it
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  :root {
+    --primary-bg: #1a1a2e;
+    --secondary-bg: #16213e;
+    --text-primary: #ffffff;
+    --text-secondary: #b8bcc8;
+    --border-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+// Light mode support
+@media (prefers-color-scheme: light) {
+  :root {
+    --primary-bg: #ffffff;
+    --secondary-bg: #f8f9fa;
+    --text-primary: #212529;
+    --text-secondary: #6c757d;
+    --border-color: rgba(0, 0, 0, 0.1);
+  }
+}

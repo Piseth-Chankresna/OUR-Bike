@@ -1,0 +1,164 @@
+<div class="home-page">
+  <!-- Loading State -->
+  <div class="loading-state text-center py-5" *ngIf="isLoading">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3 text-secondary">Loading amazing products...</p>
+  </div>
+
+  <!-- Hero Section with Carousel -->
+  <section class="hero-section" *ngIf="!isLoading">
+    <div class="hero-carousel">
+      <div class="carousel-container">
+        <div class="carousel-slide" 
+             *ngFor="let hero of heroImages; let i = index"
+             [class.active]="i === currentImageIndex">
+          <div class="hero-content" [style.background-image]="'url(' + hero.image + ')'">
+            <div class="hero-overlay">
+              <div class="container-custom">
+                <div class="hero-text">
+                  <h1 class="hero-title">{{ hero.title }}</h1>
+                  <p class="hero-subtitle">{{ hero.subtitle }}</p>
+                  <button class="btn btn-primary btn-lg hero-cta" routerLink="/products">
+                    {{ hero.cta }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Carousel Controls -->
+      <button class="carousel-control prev" (click)="prevSlide()" aria-label="Previous slide">
+        <i class="bi bi-chevron-left"></i>
+      </button>
+      <button class="carousel-control next" (click)="nextSlide()" aria-label="Next slide">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+      
+      <!-- Carousel Indicators -->
+      <div class="carousel-indicators">
+        <button *ngFor="let hero of heroImages; let i = index"
+                [class.active]="i === currentImageIndex"
+                (click)="goToSlide(i)"
+                [attr.aria-label]="'Go to slide ' + (i + 1)"></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories Section -->
+  <section class="categories-section py-5" *ngIf="!isLoading">
+    <div class="container-custom">
+      <h2 class="section-title text-center mb-5">Shop by Category</h2>
+      <div class="categories-grid">
+        <div class="category-card" *ngFor="let category of categories" routerLink="/products?category={{ category.id }}">
+          <div class="category-icon">
+            <i [class]="'bi ' + category.icon"></i>
+          </div>
+          <h3 class="category-name">{{ category.name }}</h3>
+          <p class="category-description">{{ category.description }}</p>
+          <div class="category-count">{{ category.productCount }} Products</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Products Section -->
+  <section class="featured-products-section py-5" *ngIf="!isLoading">
+    <div class="container-custom">
+      <h2 class="section-title text-center mb-5">Featured Products</h2>
+      <div class="products-grid">
+        <div class="product-card" *ngFor="let product of featuredProducts">
+          <div class="product-image">
+            <img [src]="product.image" [alt]="product.name" />
+            <div class="product-actions">
+              <button class="btn btn-icon btn-light" 
+                      (click)="addToFavorites(product.id)"
+                      title="Add to Favorites">
+                <i class="bi bi-heart"></i>
+              </button>
+              <button class="btn btn-icon btn-primary" 
+                      (click)="addToCart(product.id)"
+                      title="Add to Cart">
+                <i class="bi bi-cart-plus"></i>
+              </button>
+            </div>
+          </div>
+          <div class="product-info">
+            <h3 class="product-name">{{ product.name }}</h3>
+            <p class="product-description">{{ product.description }}</p>
+            <div class="product-price">${{ product.price }}</div>
+            <button class="btn btn-outline-primary btn-sm w-100" routerLink="/product/{{ product.id }}">
+              View Details
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Statistics Section -->
+  <section class="statistics-section py-5" *ngIf="!isLoading">
+    <div class="container-custom">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number">{{ statistics.productsSold }}</div>
+          <div class="stat-label">Products Sold</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">{{ statistics.happyCustomers }}</div>
+          <div class="stat-label">Happy Customers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">{{ statistics.yearsInBusiness }}</div>
+          <div class="stat-label">Years in Business</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">{{ statistics.productCategories }}</div>
+          <div class="stat-label">Product Categories</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section class="testimonials-section py-5" *ngIf="!isLoading">
+    <div class="container-custom">
+      <h2 class="section-title text-center mb-5">What Our Customers Say</h2>
+      <div class="testimonials-grid">
+        <div class="testimonial-card" *ngFor="let testimonial of testimonials">
+          <div class="testimonial-header">
+            <div class="testimonial-avatar">
+              <img [src]="testimonial.avatar" [alt]="testimonial.name" />
+            </div>
+            <div class="testimonial-info">
+              <h4 class="testimonial-name">{{ testimonial.name }}</h4>
+              <div class="testimonial-rating">
+                <i class="bi bi-star-fill" *ngFor="let star of getStars(testimonial.rating)"></i>
+                <i class="bi bi-star" *ngFor="let star of getStars(5 - testimonial.rating)"></i>
+              </div>
+            </div>
+          </div>
+          <p class="testimonial-comment">{{ testimonial.comment }}</p>
+          <div class="testimonial-date">{{ testimonial.date | date:'mediumDate' }}</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Call to Action Section -->
+  <section class="cta-section py-5" *ngIf="!isLoading">
+    <div class="container-custom">
+      <div class="cta-content text-center">
+        <h2 class="cta-title">Ready to Find Your Perfect Ride?</h2>
+        <p class="cta-subtitle">Explore our extensive collection of premium motorcycles and accessories</p>
+        <div class="cta-buttons">
+          <button class="btn btn-primary btn-lg me-3" routerLink="/products">Shop Now</button>
+          <button class="btn btn-outline-light btn-lg" routerLink="/auth/register">Join Our Community</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

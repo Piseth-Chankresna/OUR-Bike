@@ -1,0 +1,161 @@
+<div class="notification-dropdown" (clickOutside)="onClickOutside($event)" *ngIf="currentUser">
+  <!-- Notification Bell -->
+  <div class="notification-bell" (click)="toggleDropdown()">
+    <i class="bi bi-bell"></i>
+    <span class="notification-badge" *ngIf="unreadCount > 0">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+  </div>
+
+  <!-- Dropdown Menu -->
+  <div class="notification-menu" [class.show]="showDropdown" *ngIf="showDropdown">
+    <!-- Header -->
+    <div class="notification-header">
+      <div class="notification-title">
+        <i class="bi bi-bell me-2"></i>
+        Notifications
+      </div>
+      <div class="notification-actions">
+        <button class="btn btn-sm btn-outline-primary" (click)="markAllAsRead()" *ngIf="unreadCount > 0">
+          Mark all read
+        </button>
+        <button class="btn btn-sm btn-outline-secondary" (click)="toggleSettings()">
+          <i class="bi bi-gear"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div class="notification-settings" *ngIf="showSettings && notificationSettings">
+      <div class="settings-header">
+        <h6>Notification Settings</h6>
+        <button class="btn btn-sm btn-outline-secondary" (click)="toggleSettings()">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+      <div class="settings-content">
+        <div class="form-check form-switch mb-2">
+          <input type="checkbox" 
+                 class="form-check-input" 
+                 id="emailNotif"
+                 name="emailNotif"
+                 [(ngModel)]="notificationSettings.email">
+          <label class="form-check-label" for="emailNotif">Email Notifications</label>
+        </div>
+        <div class="form-check form-switch mb-2">
+          <input type="checkbox" 
+                 class="form-check-input" 
+                 id="pushNotif"
+                 name="pushNotif"
+                 [(ngModel)]="notificationSettings.push">
+          <label class="form-check-label" for="pushNotif">Push Notifications</label>
+        </div>
+        <div class="form-check form-switch mb-2">
+          <input type="checkbox" 
+                 class="form-check-input" 
+                 id="orderNotif"
+                 name="orderNotif"
+                 [(ngModel)]="notificationSettings.orders">
+          <label class="form-check-label" for="orderNotif">Order Updates</label>
+        </div>
+        <div class="form-check form-switch mb-2">
+          <input type="checkbox" 
+                 class="form-check-input" 
+                 id="reviewNotif"
+                 name="reviewNotif"
+                 [(ngModel)]="notificationSettings.reviews">
+          <label class="form-check-label" for="reviewNotif">Product Reviews</label>
+        </div>
+        <div class="form-check form-switch mb-2">
+          <input type="checkbox" 
+                 class="form-check-input" 
+                 id="promoNotif"
+                 name="promoNotif"
+                 [(ngModel)]="notificationSettings.promotions">
+          <label class="form-check-label" for="promoNotif">Promotions</label>
+        </div>
+        <div class="form-check form-switch mb-3">
+          <input type="checkbox" 
+                 class="form-check-input" 
+                 id="systemNotif"
+                 name="systemNotif"
+                 [(ngModel)]="notificationSettings.system">
+          <label class="form-check-label" for="systemNotif">System Updates</label>
+        </div>
+        <button class="btn btn-primary btn-sm w-100" (click)="updateSettings()">
+          Save Settings
+        </button>
+      </div>
+    </div>
+
+    <!-- Notifications List -->
+    <div class="notification-list" *ngIf="!showSettings">
+      <!-- Loading State -->
+      <div class="loading-notifications" *ngIf="isLoading">
+        <div class="spinner-border spinner-border-sm text-primary" role="status">
+          <span class="visually-hidden">Loading notifications...</span>
+        </div>
+        <span class="ms-2">Loading...</span>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-notifications" *ngIf="!isLoading && notifications.length === 0">
+        <i class="bi bi-bell-slash"></i>
+        <p>No notifications</p>
+      </div>
+
+      <!-- Notification Items -->
+      <div class="notification-items" *ngIf="!isLoading && notifications.length > 0">
+        <div class="notification-item" 
+             *ngFor="let notification of notifications; trackBy: trackByNotificationId"
+             [class.unread]="!notification.read"
+             (click)="handleNotificationClick(notification)">
+          <div class="notification-icon">
+            <i class="bi" [class]="getNotificationIcon(notification.type)" 
+               [class]="getNotificationColor(notification.type)"></i>
+          </div>
+          <div class="notification-content">
+            <div class="notification-header">
+              <span class="notification-title">{{ notification.title }}</span>
+              <span class="notification-priority">
+                <span class="badge" [class]="getPriorityBadge(notification.priority)">
+                  {{ notification.priority }}
+                </span>
+              </span>
+            </div>
+            <div class="notification-message">
+              {{ getNotificationMessage(notification) }}
+            </div>
+            <div class="notification-footer">
+              <span class="notification-time">{{ formatTime(notification.createdAt) }}</span>
+              <div class="notification-actions" *ngIf="notification.actionUrl">
+                <a [routerLink]="notification.actionUrl" 
+                   class="btn btn-sm btn-outline-primary"
+                   (click)="$event.stopPropagation()">
+                  {{ notification.actionText || 'View' }}
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="notification-delete">
+            <button class="btn btn-sm btn-outline-danger" 
+                    (click)="deleteNotification(notification.id)"
+                    title="Delete notification">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Actions -->
+      <div class="notification-footer" *ngIf="!isLoading && notifications.length > 0">
+        <button class="btn btn-sm btn-outline-danger" (click)="clearAllNotifications()">
+          Clear All
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Guest State -->
+<div class="notification-bell disabled" *ngIf="!currentUser" title="Please login to view notifications">
+  <i class="bi bi-bell"></i>
+</div>

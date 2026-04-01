@@ -1,0 +1,158 @@
+<div class="search-container">
+  <!-- Search Input -->
+  <form class="search-form" (ngSubmit)="onSearchSubmit($event)">
+    <div class="search-input-wrapper">
+      <i class="bi bi-search search-icon"></i>
+      <input
+        #searchInput
+        type="text"
+        class="search-input"
+        placeholder="Search products, categories, brands..."
+        name="searchQuery"
+        [(ngModel)]="searchQuery"
+        (input)="onInputChange($event)"
+        (focus)="onFocus()"
+        (blur)="onBlur()"
+        (keydown)="onKeyDown($event)"
+        autocomplete="off"
+      />
+      @if (searchQuery) {
+      <button
+        type="button"
+        class="search-clear"
+        (click)="clearSearch()"
+        aria-label="Clear search"
+      >
+        <i class="bi bi-x"></i>
+      </button>
+      }
+    </div>
+  </form>
+
+  <!-- Search Dropdown -->
+  @if (isDropdownOpen) {
+  <div class="search-dropdown">
+    <!-- Loading State -->
+    @if (isSearching) {
+      <div class="search-loading">
+        <div class="spinner-border spinner-border-sm text-primary" role="status">
+          <span class="visually-hidden">Searching...</span>
+        </div>
+        <span>Searching...</span>
+      </div>
+    }
+
+    <!-- Search Suggestions -->
+    @if (showSuggestions && suggestions.length > 0) {
+      <div class="search-suggestions">
+        <div class="suggestions-header">
+          <h6>Suggestions</h6>
+        </div>
+        <div class="suggestions-list">
+          @for (suggestion of suggestions; track suggestion) {
+          <div
+            class="suggestion-item"
+            (click)="onSuggestionClick(suggestion)"
+            tabindex="0"
+            (keydown.enter)="onSuggestionClick(suggestion)"
+          >
+            <div class="suggestion-icon">
+              <i [class]="getSuggestionIcon(suggestion.type)"></i>
+            </div>
+            <div class="suggestion-content">
+              <div class="suggestion-title">{{ suggestion.title }}</div>
+              <div class="suggestion-subtitle">{{ suggestion.subtitle }}</div>
+            </div>
+            @if (suggestion.image) {
+            <div class="suggestion-image">
+              <img [src]="suggestion.image" [alt]="suggestion.title" loading="lazy" />
+            </div>
+            }
+          </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Search History -->
+    @if (showHistory && (recentSearches.length > 0 || popularSearches.length > 0)) {
+      <div class="search-history">
+        <!-- Recent Searches -->
+        @if (recentSearches.length > 0) {
+          <div class="history-section">
+            <div class="history-header">
+              <h6>Recent Searches</h6>
+              <button
+                type="button"
+                class="history-clear"
+                (click)="clearAllHistory()"
+                aria-label="Clear all history"
+              >
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+            <div class="history-list">
+              @for (item of recentSearches; track item) {
+              <div
+                class="history-item"
+                (click)="onHistoryItemClick(item)"
+                tabindex="0"
+                (keydown.enter)="onHistoryItemClick(item)"
+              >
+                <div class="history-icon">
+                  <i class="bi bi-clock-history"></i>
+                </div>
+                <div class="history-content">
+                  <div class="history-query">{{ item.query }}</div>
+                  <div class="history-time">{{ formatTimestamp(item.timestamp) }}</div>
+                </div>
+              </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Popular Searches -->
+        @if (popularSearches.length > 0) {
+          <div class="history-section">
+            <div class="history-header">
+              <h6>Popular Searches</h6>
+            </div>
+            <div class="history-list">
+              @for (item of popularSearches; track item) {
+              <div
+                class="history-item"
+                (click)="onHistoryItemClick(item)"
+                tabindex="0"
+                (keydown.enter)="onHistoryItemClick(item)"
+              >
+                <div class="history-icon">
+                  <i class="bi bi-fire"></i>
+                </div>
+                <div class="history-content">
+                  <div class="history-query">{{ item.query }}</div>
+                  <div class="history-time">{{ formatTimestamp(item.timestamp) }}</div>
+                </div>
+              </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isSearching && !showSuggestions && !showHistory) {
+    <div class="search-empty">
+      <div class="empty-icon">
+        <i class="bi bi-search"></i>
+      </div>
+      <div class="empty-text">
+        <h6>Start searching</h6>
+        <p>Search for products, categories, or brands</p>
+      </div>
+    </div>
+  }
+</div>

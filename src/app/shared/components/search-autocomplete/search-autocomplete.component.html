@@ -1,0 +1,263 @@
+<div class="search-autocomplete">
+  <div class="search-container">
+    <!-- Search Input -->
+    <form [formGroup]="searchForm" (ngSubmit)="onSearchSubmit()" class="search-form">
+      <div class="search-input-wrapper">
+        <div class="search-input-container">
+          <i class="bi bi-search search-icon"></i>
+          <input 
+            #searchInput
+            type="text" 
+            class="search-input" 
+            formControlName="query"
+            placeholder="Search products, categories, brands..."
+            autocomplete="off"
+            (focus)="showHistory = true; showSuggestions = false">
+          
+          <!-- Search Actions -->
+          <div class="search-actions">
+            <button 
+              type="button" 
+              class="btn btn-link search-action-btn"
+              (click)="toggleAdvancedSearch()"
+              title="Advanced Search">
+              <i class="bi bi-sliders"></i>
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-link search-action-btn"
+              (click)="clearSuggestions()"
+              title="Clear"
+              *ngIf="searchQuery">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div class="search-loading" *ngIf="isSearching">
+          <div class="spinner-border spinner-border-sm text-primary" role="status">
+            <span class="visually-hidden">Searching...</span>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <!-- Suggestions Dropdown -->
+    <div class="suggestions-dropdown" [class.show]="showSuggestions && suggestions.length > 0">
+      <div class="suggestions-header">
+        <span class="suggestions-count">{{ suggestions.length }} suggestions found</span>
+      </div>
+      
+      <div class="suggestions-list">
+        <div 
+          class="suggestion-item" 
+          *ngFor="let suggestion of suggestions; let i = index"
+          [class.selected]="isSuggestionSelected(i)"
+          (click)="selectSuggestion(suggestion)"
+          (mouseenter)="selectedIndex = i">
+          
+          <div class="suggestion-icon">
+            <i class="bi" [class]="getSuggestionIcon(suggestion.type)"></i>
+          </div>
+          
+          <div class="suggestion-content">
+            <div class="suggestion-main">
+              <span class="suggestion-title">{{ suggestion.title }}</span>
+              <span class="suggestion-type">{{ getSuggestionTypeLabel(suggestion.type) }}</span>
+            </div>
+            
+            <div class="suggestion-details" *ngIf="suggestion.subtitle || suggestion.price">
+              <span class="suggestion-subtitle" *ngIf="suggestion.subtitle">
+                {{ suggestion.subtitle }}
+              </span>
+              <span class="suggestion-price" *ngIf="suggestion.price">
+                {{ formatPrice(suggestion.price) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search History Dropdown -->
+    <div class="history-dropdown" [class.show]="showHistory && !showSuggestions">
+      <div class="history-header">
+        <span class="history-title">Recent Searches</span>
+        <button 
+          type="button" 
+          class="btn btn-sm btn-outline-danger"
+          (click)="clearAllHistory()"
+          *ngIf="searchHistory.length > 0">
+          <i class="bi bi-trash me-1"></i>
+          Clear All
+        </button>
+      </div>
+
+      <!-- Recent Searches -->
+      <div class="history-section" *ngIf="recentSearches.length > 0">
+        <div class="history-subtitle">Recent</div>
+        <div class="history-list">
+          <div 
+            class="history-item"
+            *ngFor="let item of recentSearches"
+            (click)="selectHistoryItem(item)">
+            
+            <div class="history-icon">
+              <i class="bi bi-clock-history"></i>
+            </div>
+            
+            <div class="history-content">
+              <span class="history-query">{{ item.query }}</span>
+              <span class="history-time">{{ formatDate(item.timestamp) }}</span>
+            </div>
+            
+            <div class="history-actions">
+              <button 
+                type="button"
+                class="btn btn-sm btn-outline-secondary"
+                (click)="removeFromHistory(item)"
+                (click)="$event.stopPropagation()"
+                title="Remove from history">
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Popular Searches -->
+      <div class="history-section" *ngIf="popularSearches.length > 0">
+        <div class="history-subtitle">Popular</div>
+        <div class="popular-list">
+          <div 
+            class="popular-item"
+            *ngFor="let item of popularSearches"
+            (click)="selectHistoryItem(createSearchHistoryItem(item.query, item.resultCount))">
+            
+            <div class="popular-icon">
+              <i class="bi bi-fire"></i>
+            </div>
+            
+            <div class="popular-content">
+              <span class="popular-query">{{ item.query }}</span>
+              <span class="popular-count">{{ item.resultCount }} searches</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="history-empty" *ngIf="searchHistory.length === 0">
+        <div class="empty-icon">
+          <i class="bi bi-clock-history"></i>
+        </div>
+        <p>No search history yet</p>
+        <p class="text-muted">Start searching to see your history here</p>
+      </div>
+    </div>
+
+    <!-- Advanced Search Panel -->
+    <div class="advanced-search-panel" [class.show]="showAdvanced">
+      <div class="advanced-header">
+        <h6>Advanced Search</h6>
+        <button 
+          type="button"
+          class="btn-close"
+          (click)="showAdvanced = false">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+
+      <div class="advanced-content">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              <select class="form-select">
+                <option value="">All Categories</option>
+                <option value="bikes">Motorbikes</option>
+                <option value="accessory">Accessories</option>
+                <option value="souvenir">Souvenirs</option>
+                <option value="tool">Tools</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="col-md-4">
+            <div class="form-group">
+              <label class="form-label">Price Range</label>
+              <div class="price-range">
+                <input type="number" class="form-control" placeholder="Min">
+                <span class="price-separator">-</span>
+                <input type="number" class="form-control" placeholder="Max">
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-4">
+            <div class="form-group">
+              <label class="form-label">Sort By</label>
+              <select class="form-select">
+                <option value="relevance">Relevance</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+                <option value="name">Name: A-Z</option>
+                <option value="newest">Newest First</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="advanced-filters">
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="inStock">
+            <label class="form-check-label" for="inStock">
+              In Stock Only
+            </label>
+          </div>
+          
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="freeShipping">
+            <label class="form-check-label" for="freeShipping">
+              Free Shipping
+            </label>
+          </div>
+          
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="onSale">
+            <label class="form-check-label" for="onSale">
+              On Sale
+            </label>
+          </div>
+        </div>
+
+        <div class="advanced-actions">
+          <button type="button" class="btn btn-primary" (click)="onSearchSubmit()">
+            <i class="bi bi-search me-2"></i>
+            Apply Filters
+          </button>
+          <button type="button" class="btn btn-outline-secondary" (click)="showAdvanced = false">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search Statistics -->
+    <div class="search-stats" *ngIf="getSearchStats().totalSearches > 0">
+      <div class="stats-item">
+        <span class="stats-label">Total Searches:</span>
+        <span class="stats-value">{{ getSearchStats().totalSearches }}</span>
+      </div>
+      <div class="stats-item">
+        <span class="stats-label">Most Recent:</span>
+        <span class="stats-value">{{ getSearchStats().mostRecentQuery || 'None' }}</span>
+      </div>
+      <div class="stats-item">
+        <span class="stats-label">Top Category:</span>
+        <span class="stats-value">{{ getSearchStats().topCategory }}</span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,247 @@
+<header class="admin-header" [class.scrolled]="isScrolled" id="adminHeader">
+  <div class="header-container">
+    <nav class="navbar">
+      <!-- Original Image Brand Section -->
+      <div class="navbar-brand">
+        <a routerLink="/admin" class="logo-link">
+          <div class="brand-logo">
+            <img src="image.png" alt="OUR-Bikes" class="logo-image">
+          </div>
+          <div class="brand-content">
+            <h1 class="logo-text">Admin Panel</h1>
+            <p class="logo-tagline">Management System</p>
+          </div>
+        </a>
+      </div>
+
+      <!-- Admin Stats Bar -->
+      <div class="admin-stats">
+        <div class="stat-item">
+          <div class="stat-icon">
+            <i class="bi bi-people"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{ totalUsers }}</span>
+            <span class="stat-label">Users</span>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon">
+            <i class="bi bi-box-seam"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{ totalProducts }}</span>
+            <span class="stat-label">Products</span>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon">
+            <i class="bi bi-cart-check"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{ totalOrders }}</span>
+            <span class="stat-label">Orders</span>
+          </div>
+        </div>
+        <div class="stat-item warning">
+          <div class="stat-icon">
+            <i class="bi bi-exclamation-triangle"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{ pendingOrders }}</span>
+            <span class="stat-label">Pending</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Navigation -->
+      <div class="navbar-nav d-none d-lg-flex">
+        <div class="nav-row">
+          <!-- Management Dropdown -->
+          <div class="nav-item dropdown admin-dropdown management-dropdown">
+            <button class="nav-link dropdown-toggle" type="button" (click)="toggleManagementDropdown()">
+              <i class="bi bi-gear"></i>
+              <span>Management</span>
+              <i class="bi bi-chevron-down dropdown-arrow"></i>
+            </button>
+            <ul class="dropdown-menu" [class.show]="isManagementDropdownOpen">
+              <li class="dropdown-header">Content Management</li>
+              <li><a class="dropdown-item" routerLink="/admin/products" routerLinkActive="active" (click)="closeAllDropdowns()">
+                <i class="bi bi-box"></i>Product Management
+              </a></li>
+              <li><a class="dropdown-item" routerLink="/admin/orders" routerLinkActive="active" (click)="closeAllDropdowns()">
+                <i class="bi bi-receipt"></i>Order Management
+              </a></li>
+              <li><a class="dropdown-item" routerLink="/admin/users" routerLinkActive="active" (click)="closeAllDropdowns()">
+                <i class="bi bi-people"></i>User Management
+              </a></li>
+              <li><a class="dropdown-item" routerLink="/admin/categories" routerLinkActive="active" (click)="closeAllDropdowns()">
+                <i class="bi bi-tags"></i>Category Management
+              </a></li>
+              <li><a class="dropdown-item" routerLink="/admin/content" routerLinkActive="active" (click)="closeAllDropdowns()">
+                <i class="bi bi-file-text"></i>Content Management
+              </a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" routerLink="/admin/inventory" routerLinkActive="active" (click)="closeAllDropdowns()">
+                <i class="bi bi-clipboard-data"></i>Inventory Control
+              </a></li>
+              <li><a class="dropdown-item" routerLink="/admin/settings" routerLinkActive="active" (click)="closeAllDropdowns()">
+                <i class="bi bi-sliders"></i>System Settings
+              </a></li>
+            </ul>
+          </div>
+
+          <!-- Reports Dropdown -->
+          <div class="nav-item dropdown admin-dropdown reports-dropdown">
+            <button class="nav-link dropdown-toggle" type="button" (click)="toggleReportsDropdown()">
+              <i class="bi bi-graph-up"></i>
+              <span>Reports</span>
+              <i class="bi bi-chevron-down dropdown-arrow"></i>
+            </button>
+            <ul class="dropdown-menu" [class.show]="isReportsDropdownOpen">
+              <li class="dropdown-header">Analytics & Reports</li>
+              <li><a class="dropdown-item" routerLink="/admin/reports/sales" routerLinkActive="active" (click)="closeAllDropdowns()">
+                <i class="bi bi-cash-stack"></i>Sales Reports
+              </a></li>
+              <li><a class="dropdown-item" routerLink="/admin/reports/users" routerLinkActive="active" (click)="closeAllDropdowns()">
+                <i class="bi bi-people"></i>User Analytics
+              </a></li>
+              <li><a class="dropdown-item" routerLink="/admin/reports/products" routerLinkActive="active" (click)="closeAllDropdowns()">
+                <i class="bi bi-box"></i>Product Analytics
+              </a></li>
+              <li><a class="dropdown-item" routerLink="/admin/reports/orders" routerLinkActive="active" (click)="closeAllDropdowns()">
+                <i class="bi bi-receipt"></i>Order Analytics
+              </a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" routerLink="/admin/reports/financial" routerLinkActive="active" (click)="closeAllDropdowns()">
+                <i class="bi bi-currency-dollar"></i>Financial Reports
+              </a></li>
+              <li><a class="dropdown-item" routerLink="/admin/reports/performance" routerLinkActive="active" (click)="closeAllDropdowns()">
+                <i class="bi bi-speedometer2"></i>Performance Metrics
+              </a></li>
+            </ul>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="nav-item">
+            <button class="nav-link quick-action-btn" (click)="refreshStats()" title="Refresh Stats">
+              <i class="bi bi-arrow-clockwise"></i>
+              <span>Refresh</span>
+            </button>
+          </div>
+
+          <!-- Admin User Dropdown -->
+          <div class="nav-item dropdown admin-dropdown user-dropdown">
+            <button class="nav-link dropdown-toggle" type="button" (click)="toggleUserDropdown()">
+              <i class="bi bi-person-badge"></i>
+              <span>Admin</span>
+              <i class="bi bi-chevron-down dropdown-arrow"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" [class.show]="isUserDropdownOpen">
+              <li class="dropdown-header">Administrator</li>
+              <li><a class="dropdown-item" routerLink="/admin/profile" (click)="closeAllDropdowns()">
+                <i class="bi bi-person"></i>Admin Profile
+              </a></li>
+              <li><a class="dropdown-item" routerLink="/admin/logs" (click)="closeAllDropdowns()">
+                <i class="bi bi-journal-text"></i>System Logs
+              </a></li>
+              <li><a class="dropdown-item" routerLink="/admin/security" (click)="closeAllDropdowns()">
+                <i class="bi bi-shield-lock"></i>Security Settings
+              </a></li>
+              <li><a class="dropdown-item" routerLink="/admin/backup" (click)="closeAllDropdowns()">
+                <i class="bi bi-cloud-download"></i>Backup & Restore
+              </a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" routerLink="/" (click)="closeAllDropdowns()">
+                <i class="bi bi-house"></i>View Store
+              </a></li>
+              <li><a class="dropdown-item text-danger" (click)="logout()">
+                <i class="bi bi-power"></i>Logout Admin
+              </a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Menu Toggle -->
+      <button class="mobile-menu-toggle d-lg-none" (click)="toggleMobileMenu()">
+        <i class="bi bi-list" *ngIf="!isMobileMenuOpen"></i>
+        <i class="bi bi-x" *ngIf="isMobileMenuOpen"></i>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu d-lg-none" [class.show]="isMobileMenuOpen">
+    <div class="mobile-menu-content">
+      <div class="mobile-menu-header">
+        <div class="brand-logo">
+          <img src="image.png" alt="OUR-Bikes" class="mobile-logo-image">
+          <span>Admin Panel</span>
+        </div>
+        <button class="close-menu" (click)="toggleMobileMenu()">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+      
+      <div class="mobile-menu-body">
+        <!-- Mobile Stats -->
+        <div class="mobile-stats">
+          <div class="mobile-stat">
+            <span class="mobile-stat-value">{{ totalUsers }}</span>
+            <span class="mobile-stat-label">Users</span>
+          </div>
+          <div class="mobile-stat">
+            <span class="mobile-stat-value">{{ totalProducts }}</span>
+            <span class="mobile-stat-label">Products</span>
+          </div>
+          <div class="mobile-stat">
+            <span class="mobile-stat-value">{{ totalOrders }}</span>
+            <span class="mobile-stat-label">Orders</span>
+          </div>
+          <div class="mobile-stat">
+            <span class="mobile-stat-value">{{ pendingOrders }}</span>
+            <span class="mobile-stat-label">Pending</span>
+          </div>
+        </div>
+
+        <div class="mobile-nav-section">
+          <h6>Management</h6>
+          <ul class="mobile-nav-list">
+            <li><a routerLink="/admin/products" (click)="toggleMobileMenu()">Product Management</a></li>
+            <li><a routerLink="/admin/orders" (click)="toggleMobileMenu()">Order Management</a></li>
+            <li><a routerLink="/admin/users" (click)="toggleMobileMenu()">User Management</a></li>
+            <li><a routerLink="/admin/categories" (click)="toggleMobileMenu()">Category Management</a></li>
+            <li><a routerLink="/admin/content" (click)="toggleMobileMenu()">Content Management</a></li>
+            <li><a routerLink="/admin/inventory" (click)="toggleMobileMenu()">Inventory Control</a></li>
+            <li><a routerLink="/admin/settings" (click)="toggleMobileMenu()">System Settings</a></li>
+          </ul>
+        </div>
+
+        <div class="mobile-nav-section">
+          <h6>Reports</h6>
+          <ul class="mobile-nav-list">
+            <li><a routerLink="/admin/reports/sales" (click)="toggleMobileMenu()">Sales Reports</a></li>
+            <li><a routerLink="/admin/reports/users" (click)="toggleMobileMenu()">User Analytics</a></li>
+            <li><a routerLink="/admin/reports/products" (click)="toggleMobileMenu()">Product Analytics</a></li>
+            <li><a routerLink="/admin/reports/orders" (click)="toggleMobileMenu()">Order Analytics</a></li>
+            <li><a routerLink="/admin/reports/financial" (click)="toggleMobileMenu()">Financial Reports</a></li>
+            <li><a routerLink="/admin/reports/performance" (click)="toggleMobileMenu()">Performance Metrics</a></li>
+          </ul>
+        </div>
+
+        <div class="mobile-nav-section">
+          <h6>Admin</h6>
+          <ul class="mobile-nav-list">
+            <li><a routerLink="/admin/profile" (click)="toggleMobileMenu()">Admin Profile</a></li>
+            <li><a routerLink="/admin/logs" (click)="toggleMobileMenu()">System Logs</a></li>
+            <li><a routerLink="/admin/security" (click)="toggleMobileMenu()">Security Settings</a></li>
+            <li><a routerLink="/admin/backup" (click)="toggleMobileMenu()">Backup & Restore</a></li>
+            <li><a routerLink="/" (click)="toggleMobileMenu()">View Store</a></li>
+            <li><a (click)="logout()">Logout Admin</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>

@@ -1,0 +1,347 @@
+<div class="enhanced-theme-selector">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading themes...</span>
+      </div>
+      <p class="mt-3 text-secondary">Loading theme preferences...</p>
+    </div>
+  </div>
+
+  <!-- Theme Selector Content -->
+  <div *ngIf="!isLoading" class="theme-content">
+    <!-- Current Theme Display -->
+    <div class="current-theme-section">
+      <div class="current-theme-card">
+        <div class="current-theme-info">
+          <h5 class="current-theme-title">
+            <i class="bi bi-palette me-2"></i>
+            Current Theme
+          </h5>
+          <div class="current-theme-details">
+            <span class="theme-name">{{ currentTheme?.displayName }}</span>
+            <span class="theme-category">{{ getThemeCategory(currentTheme!) }}</span>
+          </div>
+        </div>
+        <div class="current-theme-preview">
+          <div class="preview-colors">
+            <div *ngFor="let color of getThemePreviewColors(currentTheme!)" 
+                 class="preview-color" 
+                 [style.background-color]="color">
+            </div>
+          </div>
+        </div>
+        <div class="current-theme-actions">
+          <button class="btn btn-outline-primary btn-sm" (click)="toggleTheme()">
+            <i class="bi bi-arrow-left-right me-1"></i>
+            Toggle Theme
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Theme Preferences Form -->
+    <div class="preferences-section">
+      <form [formGroup]="themeForm">
+        <div class="form-check form-switch mb-3">
+          <input type="checkbox" class="form-check-input" id="systemThemeDetection" 
+                 formControlName="systemThemeDetection"
+                 [disabled]="!isSystemThemeDetectionAvailable()">
+          <label class="form-check-label" for="systemThemeDetection">
+            <i class="bi bi-laptop me-2"></i>
+            Follow System Theme
+            <small class="d-block text-muted" *ngIf="!isSystemThemeDetectionAvailable()">
+              System theme detection not available in this browser
+            </small>
+          </label>
+        </div>
+
+        <div class="form-check form-switch mb-3">
+          <input type="checkbox" class="form-check-input" id="autoSwitchSchedule" 
+                 formControlName="autoSwitchSchedule">
+          <label class="form-check-label" for="autoSwitchSchedule">
+            <i class="bi bi-clock me-2"></i>
+            Auto-switch by Schedule
+          </label>
+        </div>
+
+        <div *ngIf="themeForm.get('autoSwitchSchedule')?.value" class="schedule-preview">
+          <div class="schedule-info">
+            <i class="bi bi-sun me-2"></i>
+            <span>Light: {{ formatTime(scheduleForm.get('lightStartTime')?.value) }}</span>
+            <i class="bi bi-moon ms-3 me-2"></i>
+            <span>Dark: {{ formatTime(scheduleForm.get('darkStartTime')?.value) }}</span>
+          </div>
+          <button type="button" class="btn btn-outline-secondary btn-sm" 
+                  (click)="showScheduleSettingsPanel()">
+            <i class="bi bi-gear me-1"></i>
+            Configure
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Theme Categories -->
+    <div class="theme-categories">
+      <!-- Recently Used -->
+      <div *ngIf="getRecentlyUsedThemes().length > 0" class="theme-category">
+        <h6 class="category-title">
+          <i class="bi bi-clock-history me-2"></i>
+          Recently Used
+        </h6>
+        <div class="theme-grid">
+          <div *ngFor="let theme of getRecentlyUsedThemes()" 
+               class="theme-card"
+               [class.active]="currentTheme?.id === theme.id"
+               (click)="applyTheme(theme.id)">
+            <div class="theme-preview">
+              <div class="preview-colors">
+                <div *ngFor="let color of getThemePreviewColors(theme)" 
+                     class="preview-color" 
+                     [style.background-color]="color">
+                </div>
+              </div>
+            </div>
+            <div class="theme-info">
+              <span class="theme-name">{{ theme.displayName }}</span>
+              <button type="button" 
+                      class="favorite-btn"
+                      [class.active]="isFavorite(theme.id)"
+                      (click)="addToFavorites(theme.id); $event.stopPropagation()">
+                <i class="bi" [class]="isFavorite(theme.id) ? 'bi-heart-fill' : 'bi-heart'"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Favorites -->
+      <div *ngIf="getFavoriteThemes().length > 0" class="theme-category">
+        <h6 class="category-title">
+          <i class="bi bi-heart-fill me-2"></i>
+          Favorites
+        </h6>
+        <div class="theme-grid">
+          <div *ngFor="let theme of getFavoriteThemes()" 
+               class="theme-card"
+               [class.active]="currentTheme?.id === theme.id"
+               (click)="applyTheme(theme.id)">
+            <div class="theme-preview">
+              <div class="preview-colors">
+                <div *ngFor="let color of getThemePreviewColors(theme)" 
+                     class="preview-color" 
+                     [style.background-color]="color">
+                </div>
+              </div>
+            </div>
+            <div class="theme-info">
+              <span class="theme-name">{{ theme.displayName }}</span>
+              <button type="button" 
+                      class="favorite-btn active"
+                      (click)="removeFromFavorites(theme.id); $event.stopPropagation()">
+                <i class="bi bi-heart-fill"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Built-in Themes -->
+      <div class="theme-category">
+        <h6 class="category-title">
+          <i class="bi bi-palette me-2"></i>
+          Built-in Themes
+        </h6>
+        <div class="theme-grid">
+          <div *ngFor="let theme of getBuiltInThemes()" 
+               class="theme-card"
+               [class.active]="currentTheme?.id === theme.id"
+               (click)="applyTheme(theme.id)">
+            <div class="theme-preview">
+              <div class="preview-colors">
+                <div *ngFor="let color of getThemePreviewColors(theme)" 
+                     class="preview-color" 
+                     [style.background-color]="color">
+                </div>
+              </div>
+            </div>
+            <div class="theme-info">
+              <span class="theme-name">{{ theme.displayName }}</span>
+              <button type="button" 
+                      class="favorite-btn"
+                      [class.active]="isFavorite(theme.id)"
+                      (click)="isFavorite(theme.id) ? removeFromFavorites(theme.id) : addToFavorites(theme.id); $event.stopPropagation()">
+                <i class="bi" [class]="isFavorite(theme.id) ? 'bi-heart-fill' : 'bi-heart'"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Custom Themes -->
+      <div *ngIf="getCustomThemes().length > 0" class="theme-category">
+        <h6 class="category-title">
+          <i class="bi bi-brush me-2"></i>
+          Custom Themes
+        </h6>
+        <div class="theme-grid">
+          <div *ngFor="let theme of getCustomThemes()" 
+               class="theme-card"
+               [class.active]="currentTheme?.id === theme.id"
+               (click)="applyTheme(theme.id)">
+            <div class="theme-preview">
+              <div class="preview-colors">
+                <div *ngFor="let color of getThemePreviewColors(theme)" 
+                     class="preview-color" 
+                     [style.background-color]="color">
+                </div>
+              </div>
+            </div>
+            <div class="theme-info">
+              <span class="theme-name">{{ theme.displayName }}</span>
+              <button type="button" 
+                      class="favorite-btn"
+                      [class.active]="isFavorite(theme.id)"
+                      (click)="isFavorite(theme.id) ? removeFromFavorites(theme.id) : addToFavorites(theme.id); $event.stopPropagation()">
+                <i class="bi" [class]="isFavorite(theme.id) ? 'bi-heart-fill' : 'bi-heart'"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <div class="row g-2">
+        <div class="col-md-3 col-6">
+          <button class="btn btn-outline-primary w-100" (click)="showCustomEditor()">
+            <i class="bi bi-plus-circle me-2"></i>
+            Create Theme
+          </button>
+        </div>
+        <div class="col-md-3 col-6">
+          <label class="btn btn-outline-secondary w-100">
+            <i class="bi bi-upload me-2"></i>
+            Import
+            <input type="file" accept=".json" (change)="importThemes($event)" style="display: none;">
+          </label>
+        </div>
+        <div class="col-md-3 col-6">
+          <button class="btn btn-outline-info w-100" (click)="exportThemes()">
+            <i class="bi bi-download me-2"></i>
+            Export
+          </button>
+        </div>
+        <div class="col-md-3 col-6">
+          <button class="btn btn-outline-warning w-100" (click)="resetToDefault()">
+            <i class="bi bi-arrow-clockwise me-2"></i>
+            Reset
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="save-section">
+      <button type="button" class="btn btn-primary btn-lg w-100" 
+              (click)="savePreferences()"
+              [disabled]="isSaving">
+        <span *ngIf="isSaving" class="spinner-border spinner-border-sm me-2"></span>
+        <i class="bi bi-save me-2" *ngIf="!isSaving"></i>
+        {{ isSaving ? 'Saving...' : 'Save Preferences' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Schedule Settings Modal -->
+  <div *ngIf="showScheduleSettings" class="modal-overlay" (click)="hideScheduleSettings()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-clock me-2"></i>
+          Schedule Settings
+        </h5>
+        <button type="button" class="btn-close" (click)="hideScheduleSettings()"></button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="scheduleForm">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="lightStartTime" class="form-label">Light Theme Time</label>
+                <select class="form-select" id="lightStartTime" formControlName="lightStartTime">
+                  <option *ngFor="let time of timeOptions" [value]="time">
+                    {{ formatTime(time) }}
+                  </option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="darkStartTime" class="form-label">Dark Theme Time</label>
+                <select class="form-select" id="darkStartTime" formControlName="darkStartTime">
+                  <option *ngFor="let time of timeOptions" [value]="time">
+                    {{ formatTime(time) }}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="timezone" class="form-label">Timezone</label>
+            <select class="form-select" id="timezone" formControlName="timezone">
+              <option *ngFor="let tz of timezoneOptions" [value]="tz">{{ tz }}</option>
+            </select>
+          </div>
+
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="weekendsOnly" 
+                   formControlName="weekendsOnly">
+            <label class="form-check-label" for="weekendsOnly">
+              Weekends Only
+            </label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="hideScheduleSettings()">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-primary" (click)="savePreferences(); hideScheduleSettings()">
+          Save Schedule
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Theme Editor Modal -->
+  <div *ngIf="showCustomThemeEditor" class="modal-overlay" (click)="hideCustomEditor()">
+    <div class="modal-content large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-brush me-2"></i>
+          Create Custom Theme
+        </h5>
+        <button type="button" class="btn-close" (click)="hideCustomEditor()"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted">Custom theme editor would be implemented here with color pickers and preview.</p>
+        <div class="text-center py-4">
+          <i class="bi bi-brush display-4 text-muted"></i>
+          <p class="mt-3">Advanced theme editor coming soon!</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="hideCustomEditor()">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-primary" disabled>
+          Create Theme (Coming Soon)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

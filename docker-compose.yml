@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  # Production build
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - ourbikes-network
+
+  # Development server (optional)
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "4200:4200"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm start
+    networks:
+      - ourbikes-network
+    profiles:
+      - dev
+
+  # Database (if needed)
+  database:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ourbikes_store
+      POSTGRES_USER: ourbikes_user
+      POSTGRES_PASSWORD: secure_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ourbikes-network
+    profiles:
+      - full
+
+  # Redis for caching (if needed)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ourbikes-network
+    profiles:
+      - full
+
+  # Nginx reverse proxy (if needed)
+  proxy:
+    image: nginx:alpine
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./nginx-proxy.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - app
+    networks:
+      - ourbikes-network
+    profiles:
+      - proxy
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  ourbikes-network:
+    driver: bridge

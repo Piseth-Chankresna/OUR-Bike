@@ -1,0 +1,195 @@
+<div class="comparison-page">
+  <div class="container-custom">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="row align-items-center mb-4">
+        <div class="col-md-6">
+          <h1 class="page-title">
+            <i class="bi bi-columns-gap me-2"></i>
+            Product Comparison
+          </h1>
+          <p class="page-subtitle">Compare up to 4 products side by side</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <div class="comparison-actions">
+            <button class="btn btn-outline-danger" (click)="clearComparison()" *ngIf="comparisonProducts.length > 0">
+              <i class="bi bi-trash me-2"></i>
+              Clear All
+            </button>
+            <a href="/products" class="btn btn-primary ms-2">
+              <i class="bi bi-plus me-2"></i>
+              Add Products
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3 text-secondary">Loading comparison...</p>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && comparisonProducts.length === 0" class="empty-state">
+      <div class="text-center py-5">
+        <div class="empty-icon">
+          <i class="bi bi-columns-gap"></i>
+        </div>
+        <h5>No Products to Compare</h5>
+        <p>Add products to comparison to see them side by side</p>
+        <a href="/products" class="btn btn-primary">
+          <i class="bi bi-search me-2"></i>
+          Browse Products
+        </a>
+      </div>
+    </div>
+
+    <!-- Comparison Table -->
+    <div *ngIf="!isLoading && comparisonProducts.length > 0" class="comparison-content">
+      <div class="comparison-table">
+        <!-- Product Headers -->
+        <div class="comparison-row comparison-header">
+          <div class="comparison-cell comparison-label">
+            <strong>Product</strong>
+          </div>
+          <div class="comparison-cell comparison-product" *ngFor="let product of comparisonProducts">
+            <div class="product-card">
+              <div class="product-image">
+                <img [src]="product.image" [alt]="product.name" class="img-fluid">
+              </div>
+              <div class="product-info">
+                <h6 class="product-name">{{ product.name }}</h6>
+                <p class="product-category">{{ product.category }}</p>
+                <div class="product-price">
+                  <strong>{{ formatPrice(product.price) }}</strong>
+                </div>
+                <div class="product-actions">
+                  <button class="btn btn-sm btn-outline-primary" (click)="goToProduct(product.id)">
+                    <i class="bi bi-eye me-1"></i>
+                    View
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" (click)="removeFromComparison(product.id)">
+                    <i class="bi bi-x me-1"></i>
+                    Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Basic Info -->
+        <div class="comparison-row">
+          <div class="comparison-cell comparison-label">
+            <strong>Brand</strong>
+          </div>
+          <div class="comparison-cell" *ngFor="let product of comparisonProducts">
+            <span [class.best-value]="getBestValue('Brand') === product.id">
+              {{ getSpecValue(product, 'Brand') }}
+            </span>
+          </div>
+        </div>
+
+        <div class="comparison-row">
+          <div class="comparison-cell comparison-label">
+            <strong>Model</strong>
+          </div>
+          <div class="comparison-cell" *ngFor="let product of comparisonProducts">
+            <span [class.best-value]="getBestValue('Model') === product.id">
+              {{ getSpecValue(product, 'Model') }}
+            </span>
+          </div>
+        </div>
+
+        <div class="comparison-row">
+          <div class="comparison-cell comparison-label">
+            <strong>Year</strong>
+          </div>
+          <div class="comparison-cell" *ngFor="let product of comparisonProducts">
+            <span [class.best-value]="getBestValue('Year') === product.id">
+              {{ getSpecValue(product, 'Year') }}
+            </span>
+          </div>
+        </div>
+
+        <div class="comparison-row">
+          <div class="comparison-cell comparison-label">
+            <strong>Price</strong>
+          </div>
+          <div class="comparison-cell" *ngFor="let product of comparisonProducts">
+            <span [class.best-value]="getBestValue('Price') === product.id">
+              {{ formatPrice(product.price) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Technical Specs -->
+        <div class="comparison-section">
+          <h5 class="section-title">Technical Specifications</h5>
+          
+          <div class="comparison-row" *ngFor="let spec of getCommonSpecs()">
+            <div class="comparison-cell comparison-label">
+              <strong>{{ spec }}</strong>
+            </div>
+            <div class="comparison-cell" *ngFor="let product of comparisonProducts">
+              <span [class.best-value]="getBestValue(spec) === product.id">
+                {{ getSpecValue(product, spec) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="comparison-row">
+          <div class="comparison-cell comparison-label">
+            <strong>Description</strong>
+          </div>
+          <div class="comparison-cell" *ngFor="let product of comparisonProducts">
+            <p class="product-description">{{ product.description }}</p>
+          </div>
+        </div>
+
+        <!-- Stock Status -->
+        <div class="comparison-row">
+          <div class="comparison-cell comparison-label">
+            <strong>Availability</strong>
+          </div>
+          <div class="comparison-cell" *ngFor="let product of comparisonProducts">
+            <span class="badge" [class.bg-success]="product.stock > 0" [class.bg-danger]="product.stock === 0">
+              {{ product.stock > 0 ? 'In Stock' : 'Out of Stock' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Action Row -->
+        <div class="comparison-row comparison-footer">
+          <div class="comparison-cell comparison-label">
+            <strong>Actions</strong>
+          </div>
+          <div class="comparison-cell" *ngFor="let product of comparisonProducts">
+            <div class="action-buttons">
+              <button class="btn btn-primary btn-sm" (click)="goToProduct(product.id)" [disabled]="product.stock === 0">
+                <i class="bi bi-cart-plus me-1"></i>
+                Add to Cart
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comparison Legend -->
+    <div *ngIf="!isLoading && comparisonProducts.length > 0" class="comparison-legend">
+      <div class="legend-item">
+        <span class="legend-badge best-value-indicator"></span>
+        <span class="legend-text">Best Value</span>
+      </div>
+    </div>
+  </div>
+</div>

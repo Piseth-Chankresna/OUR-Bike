@@ -1,0 +1,352 @@
+// =============================================
+// OUR-BIKES STORE - TYPOGRAPHY
+// =============================================
+
+// IMPORT VARIABLES & MIXINS
+@use './variables' as *;
+@use './mixins' as *;
+
+// IMPORT GOOGLE FONTS
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700;900&display=swap');
+
+// TYPOGRAPHY RESET
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: $font-family-body;
+  font-size: $font-size-base;
+  font-weight: $font-weight-normal;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: var(--primary-bg);
+  transition: $transition-base;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// HEADING STYLES
+h1, h2, h3, h4, h5, h6 {
+  font-family: $font-family-heading;
+  font-weight: $font-weight-semibold;
+  line-height: 1.2;
+  margin-bottom: $spacing-md;
+  color: var(--text-primary);
+}
+
+h1 {
+  @include heading-1;
+}
+
+h2 {
+  @include heading-2;
+}
+
+h3 {
+  @include heading-3;
+}
+
+h4 {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: var(--text-primary);
+  margin-bottom: $spacing-sm;
+}
+
+h5 {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-medium;
+  color: var(--text-primary);
+  margin-bottom: $spacing-sm;
+}
+
+h6 {
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  color: var(--text-primary);
+  margin-bottom: $spacing-xs;
+}
+
+// PARAGRAPH STYLES
+p {
+  @include body-text;
+  margin-bottom: $spacing-md;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// TEXT ELEMENTS
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: $transition-base;
+  
+  &:hover {
+    color: var(--secondary-color);
+    text-decoration: underline;
+  }
+  
+  &:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
+}
+
+strong, b {
+  font-weight: $font-weight-semibold;
+}
+
+em, i {
+  font-style: italic;
+}
+
+u {
+  text-decoration: underline;
+}
+
+// LIST STYLES
+ul, ol {
+  margin-bottom: $spacing-md;
+  padding-left: $spacing-lg;
+}
+
+li {
+  margin-bottom: $spacing-xs;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// CODE STYLES
+code {
+  font-family: 'Courier New', Courier, monospace;
+  background: var(--card-bg);
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+  color: var(--primary-color);
+  border: 1px solid var(--border-color);
+}
+
+pre {
+  background: var(--card-bg);
+  padding: $spacing-lg;
+  border-radius: $border-radius-md;
+  overflow-x: auto;
+  margin-bottom: $spacing-lg;
+  border: 1px solid var(--border-color);
+  
+  code {
+    background: none;
+    padding: 0;
+    border-radius: 0;
+    border: none;
+    color: var(--text-primary);
+  }
+}
+
+// QUOTE STYLES
+blockquote {
+  border-left: 4px solid var(--primary-color);
+  padding-left: $spacing-lg;
+  margin: $spacing-lg 0;
+  font-style: italic;
+  color: var(--text-secondary);
+  
+  p {
+    margin-bottom: 0;
+  }
+}
+
+// UTILITY CLASSES
+.text-primary {
+  color: var(--primary-color) !important;
+}
+
+.text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.text-success {
+  color: var(--success-color) !important;
+}
+
+.text-warning {
+  color: var(--warning-color) !important;
+}
+
+.text-danger {
+  color: var(--danger-color) !important;
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+.text-left {
+  text-align: left !important;
+}
+
+.text-right {
+  text-align: right !important;
+}
+
+.text-uppercase {
+  text-transform: uppercase !important;
+}
+
+.text-lowercase {
+  text-transform: lowercase !important;
+}
+
+.text-capitalize {
+  text-transform: capitalize !important;
+}
+
+.font-light {
+  font-weight: $font-weight-light !important;
+}
+
+.font-normal {
+  font-weight: $font-weight-normal !important;
+}
+
+.font-medium {
+  font-weight: $font-weight-medium !important;
+}
+
+.font-semibold {
+  font-weight: $font-weight-semibold !important;
+}
+
+.font-bold {
+  font-weight: $font-weight-bold !important;
+}
+
+// HEADING FONT CLASSES
+.font-heading {
+  font-family: $font-family-heading !important;
+}
+
+.font-body {
+  font-family: $font-family-body !important;
+}
+
+.font-accent {
+  font-family: $font-family-accent !important;
+}
+
+// FONT SIZE CLASSES
+.text-xs {
+  font-size: $font-size-xs !important;
+}
+
+.text-sm {
+  font-size: $font-size-sm !important;
+}
+
+.text-base {
+  font-size: $font-size-base !important;
+}
+
+.text-lg {
+  font-size: $font-size-lg !important;
+}
+
+.text-xl {
+  font-size: $font-size-xl !important;
+}
+
+.text-2xl {
+  font-size: $font-size-2xl !important;
+}
+
+.text-3xl {
+  font-size: $font-size-3xl !important;
+}
+
+.text-4xl {
+  font-size: $font-size-4xl !important;
+}
+
+.text-5xl {
+  font-size: $font-size-5xl !important;
+}
+
+// LINE HEIGHT CLASSES
+.leading-tight {
+  line-height: 1 !important;
+}
+
+.leading-normal {
+  line-height: 1.6 !important;
+}
+
+.leading-relaxed {
+  line-height: 1.8 !important;
+}
+
+// RESPONSIVE TYPOGRAPHY
+@include respond-to(md) {
+  h1 {
+    font-size: $font-size-5xl;
+  }
+  
+  h2 {
+    font-size: $font-size-4xl;
+  }
+  
+  h3 {
+    font-size: $font-size-3xl;
+  }
+}
+
+@include respond-to(lg) {
+  h1 {
+    font-size: 4rem;
+  }
+  
+  h2 {
+    font-size: 3rem;
+  }
+  
+  h3 {
+    font-size: 2.5rem;
+  }
+}
+
+// PRINT STYLES
+@media print {
+  body {
+    font-size: 12pt;
+    line-height: 1.4;
+    color: black;
+    background: white;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    color: black;
+    page-break-after: avoid;
+  }
+  
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  
+  a {
+    color: black;
+    text-decoration: underline;
+  }
+}

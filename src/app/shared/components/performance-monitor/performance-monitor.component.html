@@ -1,0 +1,226 @@
+<div class="performance-monitor">
+  <!-- Header -->
+  <div class="monitor-header">
+    <h3>
+      <i class="bi bi-speedometer2"></i>
+      Performance Monitor
+    </h3>
+    <div class="header-actions">
+      <button class="btn btn-outline-primary btn-sm" (click)="refreshData()">
+        <i class="bi bi-arrow-clockwise"></i>
+        Refresh
+      </button>
+      <button class="btn btn-outline-success btn-sm" (click)="exportData()">
+        <i class="bi bi-download"></i>
+        Export
+      </button>
+      <button class="btn btn-outline-danger btn-sm" (click)="clearMetrics()">
+        <i class="bi bi-trash"></i>
+        Clear
+      </button>
+    </div>
+  </div>
+
+  <!-- Performance Score -->
+  <div class="performance-score-card">
+    <div class="score-display">
+      <div class="score-circle" [style.background]="getScoreColor(performanceScore)">
+        <span class="score-value">{{ performanceScore }}</span>
+        <span class="score-grade">{{ getScoreGrade(performanceScore) }}</span>
+      </div>
+      <div class="score-info">
+        <h4>Performance Score</h4>
+        <p>{{ isPerformanceGood() ? 'Excellent performance!' : 'Performance needs improvement' }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="settings-card">
+    <h5>Monitor Settings</h5>
+    <form [formGroup]="settingsForm" class="settings-form">
+      <div class="form-check">
+        <input type="checkbox" id="autoRefresh" class="form-check-input" formControlName="autoRefresh">
+        <label for="autoRefresh" class="form-check-label">Auto Refresh</label>
+      </div>
+      <div class="form-group">
+        <label for="refreshInterval">Refresh Interval (ms)</label>
+        <input type="number" id="refreshInterval" class="form-control form-control-sm" formControlName="refreshInterval">
+      </div>
+      <div class="form-check">
+        <input type="checkbox" id="showDetails" class="form-check-input" formControlName="showDetails">
+        <label for="showDetails" class="form-check-label">Show Technical Details</label>
+      </div>
+    </form>
+  </div>
+
+  <!-- Web Vitals -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-header">
+        <h6>First Contentful Paint</h6>
+        <span class="metric-status" [style.color]="getWebVitalsColor('FCP')">
+          {{ getWebVitalsStatus('FCP') }}
+        </span>
+      </div>
+      <div class="metric-value">
+        {{ webVitals ? formatTime(webVitals.FCP) : 'N/A' }}
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-header">
+        <h6>Largest Contentful Paint</h6>
+        <span class="metric-status" [style.color]="getWebVitalsColor('LCP')">
+          {{ getWebVitalsStatus('LCP') }}
+        </span>
+      </div>
+      <div class="metric-value">
+        {{ webVitals ? formatTime(webVitals.LCP) : 'N/A' }}
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-header">
+        <h6>First Input Delay</h6>
+        <span class="metric-status" [style.color]="getWebVitalsColor('FID')">
+          {{ getWebVitalsStatus('FID') }}
+        </span>
+      </div>
+      <div class="metric-value">
+        {{ webVitals ? formatTime(webVitals.FID) : 'N/A' }}
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-header">
+        <h6>Cumulative Layout Shift</h6>
+        <span class="metric-status" [style.color]="getWebVitalsColor('CLS')">
+          {{ getWebVitalsStatus('CLS') }}
+        </span>
+      </div>
+      <div class="metric-value">
+        {{ webVitals ? webVitals.CLS.toFixed(3) : 'N/A' }}
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-header">
+        <h6>Time to First Byte</h6>
+        <span class="metric-status" [style.color]="getWebVitalsColor('TTFB')">
+          {{ getWebVitalsStatus('TTFB') }}
+        </span>
+      </div>
+      <div class="metric-value">
+        {{ webVitals ? formatTime(webVitals.TTFB) : 'N/A' }}
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-header">
+        <h6>Average Load Time</h6>
+        <span class="metric-status" [style.color]="averageLoadTime <= 1000 ? '#28a745' : averageLoadTime <= 2000 ? '#ffc107' : '#dc3545'">
+          {{ averageLoadTime <= 1000 ? 'Good' : averageLoadTime <= 2000 ? 'Fair' : 'Poor' }}
+        </span>
+      </div>
+      <div class="metric-value">
+        {{ formatTime(averageLoadTime) }}
+      </div>
+    </div>
+  </div>
+
+  <!-- System Information -->
+  <div class="system-info-grid">
+    <div class="info-card">
+      <h6>Memory Usage</h6>
+      <div class="info-content" *ngIf="memoryUsage">
+        <div class="info-value">{{ formatMemory(memoryUsage.used) }}</div>
+        <div class="info-details">
+          <span>Total: {{ formatMemory(memoryUsage.total) }}</span>
+          <span>Usage: {{ memoryUsage.usedPercentage.toFixed(1) }}%</span>
+        </div>
+        <div class="info-status" [style.color]="getMemoryStatusColor()">
+          {{ getMemoryStatus() }}
+        </div>
+      </div>
+      <div class="no-data" *ngIf="!memoryUsage">
+        Memory data not available
+      </div>
+    </div>
+
+    <div class="info-card">
+      <h6>Network Quality</h6>
+      <div class="info-content" *ngIf="networkInfo">
+        <div class="info-value">{{ networkInfo.effectiveType.toUpperCase() }}</div>
+        <div class="info-details">
+          <span>Speed: {{ networkInfo.downlink }} Mbps</span>
+          <span>RTT: {{ networkInfo.rtt }}ms</span>
+        </div>
+        <div class="info-status" [style.color]="getNetworkQualityColor()">
+          {{ getNetworkQuality() }}
+        </div>
+      </div>
+      <div class="no-data" *ngIf="!networkInfo">
+        Network data not available
+      </div>
+    </div>
+  </div>
+
+  <!-- Technical Details (if enabled) -->
+  <div class="technical-details" *ngIf="settingsForm.get('showDetails')?.value">
+    <h5>Technical Details</h5>
+    
+    <!-- Slowest Routes -->
+    <div class="details-section">
+      <h6>Slowest Routes</h6>
+      <div class="routes-list">
+        <div *ngFor="let route of getSlowestRoutes()" class="route-item">
+          <span class="route-path">{{ route.route }}</span>
+          <span class="route-time" [style.color]="route.loadTime <= 1000 ? '#28a745' : route.loadTime <= 2000 ? '#ffc107' : '#dc3545'">
+            {{ formatTime(route.loadTime) }}
+          </span>
+        </div>
+        <div class="no-data" *ngIf="getSlowestRoutes().length === 0">
+          No route data available
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Metrics -->
+    <div class="details-section">
+      <h6>Recent Navigation Metrics</h6>
+      <div class="metrics-list">
+        <div *ngFor="let metric of metrics.slice(-10)" class="metric-item">
+          <span class="metric-route">{{ metric.route }}</span>
+          <span class="metric-time">{{ formatTime(metric.loadTime) }}</span>
+          <span class="metric-timestamp">{{ metric.timestamp | date:'shortTime' }}</span>
+        </div>
+        <div class="no-data" *ngIf="metrics.length === 0">
+          No metrics available
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recommendations -->
+  <div class="recommendations-card">
+    <h5>Performance Recommendations</h5>
+    <div class="recommendations-list">
+      <div *ngFor="let recommendation of getRecommendations()" class="recommendation-item">
+        <i class="bi bi-lightbulb"></i>
+        <span>{{ recommendation }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monitoring Status -->
+  <div class="monitoring-status">
+    <div class="status-indicator" [class.active]="isMonitoring">
+      <i class="bi" [class]="isMonitoring ? 'bi-activity' : 'bi-pause-circle'"></i>
+      <span>{{ isMonitoring ? 'Monitoring Active' : 'Monitoring Paused' }}</span>
+    </div>
+    <div class="metrics-count">
+      {{ metrics.length }} metrics collected
+    </div>
+  </div>
+</div>

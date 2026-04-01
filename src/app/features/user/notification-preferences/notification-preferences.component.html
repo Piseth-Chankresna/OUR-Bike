@@ -1,0 +1,477 @@
+<div class="notification-preferences-page">
+  <div class="container-custom">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="row align-items-center mb-4">
+        <div class="col-md-6">
+          <h1 class="page-title">
+            <i class="bi bi-bell me-2"></i>
+            Notification Preferences
+          </h1>
+          <p class="page-subtitle">Manage your notification settings and preferences</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <div class="header-actions">
+            <button class="btn btn-outline-primary btn-sm me-2" (click)="exportPreferences()">
+              <i class="bi bi-download me-1"></i>
+              Export
+            </button>
+            <label class="btn btn-outline-secondary btn-sm me-2">
+              <i class="bi bi-upload me-1"></i>
+              Import
+              <input type="file" accept=".json" (change)="importPreferences($event)" style="display: none;">
+            </label>
+            <button class="btn btn-outline-warning btn-sm" (click)="resetToDefault()">
+              <i class="bi bi-arrow-clockwise me-1"></i>
+              Reset to Default
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading preferences...</span>
+        </div>
+        <p class="mt-3 text-secondary">Loading your notification preferences...</p>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div *ngIf="!isLoading" class="preferences-content">
+      <!-- Success Message -->
+      <div *ngIf="saveSuccess" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i>
+        Your notification preferences have been saved successfully!
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+
+      <!-- Statistics Cards -->
+      <div class="stats-section mb-4">
+        <div class="row g-3">
+          <div class="col-md-3">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="bi bi-bell"></i>
+              </div>
+              <div class="stat-content">
+                <h3>{{ notificationStats?.totalEnabled || 0 }}</h3>
+                <p>Enabled Notifications</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="bi bi-envelope"></i>
+              </div>
+              <div class="stat-content">
+                <h3>{{ notificationStats?.emailEnabled || 0 }}</h3>
+                <p>Email Settings</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="bi bi-phone"></i>
+              </div>
+              <div class="stat-content">
+                <h3>{{ notificationStats?.pushEnabled || 0 }}</h3>
+                <p>Push Settings</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="bi bi-moon"></i>
+              </div>
+              <div class="stat-content">
+                <h3>{{ notificationStats?.quietHoursActive ? 'Active' : 'Inactive' }}</h3>
+                <p>Quiet Hours</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="tab-navigation">
+        <ul class="nav nav-tabs" role="tablist">
+          <li class="nav-item">
+            <button class="nav-link" [class.active]="activeTab === 'general'" (click)="setActiveTab('general')">
+              <i class="bi bi-gear me-2"></i>
+              General Settings
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" [class.active]="activeTab === 'quiet'" (click)="setActiveTab('quiet')">
+              <i class="bi bi-moon me-2"></i>
+              Quiet Hours
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" [class.active]="activeTab === 'frequency'" (click)="setActiveTab('frequency')">
+              <i class="bi bi-clock me-2"></i>
+              Frequency
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" [class.active]="activeTab === 'test'" (click)="setActiveTab('test')">
+              <i class="bi bi-play-circle me-2"></i>
+              Test Notifications
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="tab-content">
+        <!-- General Settings Tab -->
+        <div *ngIf="activeTab === 'general'" class="tab-pane fade show active">
+          <form [formGroup]="preferencesForm">
+            <!-- Email Notifications -->
+            <div class="settings-section">
+              <h5 class="section-title">
+                <i class="bi bi-envelope me-2"></i>
+                Email Notifications
+              </h5>
+              <div class="form-check form-switch mb-3">
+                <input type="checkbox" class="form-check-input" id="emailEnabled" 
+                       formControlName="emailNotifications.enabled">
+                <label class="form-check-label" for="emailEnabled">
+                  Enable Email Notifications
+                </label>
+              </div>
+              
+              <div formGroupName="emailNotifications">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="emailAddress" class="form-label">Email Address</label>
+                      <input type="email" class="form-control" id="emailAddress" 
+                             formControlName="emailAddress"
+                             placeholder="your@email.com">
+                      <div class="invalid-feedback d-block" 
+                           *ngIf="getFieldErrorMessage(preferencesForm.get('emailNotifications')!, 'emailAddress')">
+                        {{ getFieldErrorMessage(preferencesForm.get('emailNotifications')!, 'emailAddress') }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="notification-options">
+                  <div class="form-check" *ngFor="let option of emailNotificationOptions">
+                    <input type="checkbox" class="form-check-input" 
+                           [id]="option.field" [formControlName]="option.field">
+                    <label class="form-check-label" [for]="option.field">
+                      <i class="bi" [class]="option.icon"></i>
+                      {{ option.label }}
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Push Notifications -->
+            <div class="settings-section">
+              <h5 class="section-title">
+                <i class="bi bi-phone me-2"></i>
+                Push Notifications
+              </h5>
+              <div class="form-check form-switch mb-3">
+                <input type="checkbox" class="form-check-input" id="pushEnabled" 
+                       formControlName="pushNotifications.enabled">
+                <label class="form-check-label" for="pushEnabled">
+                  Enable Push Notifications
+                </label>
+              </div>
+              
+              <div formGroupName="pushNotifications">
+                <div class="notification-options">
+                  <div class="form-check" *ngFor="let option of pushNotificationOptions">
+                    <input type="checkbox" class="form-check-input" 
+                           [id]="option.field" [formControlName]="option.field">
+                    <label class="form-check-label" [for]="option.field">
+                      <i class="bi" [class]="option.icon"></i>
+                      {{ option.label }}
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- In-App Notifications -->
+            <div class="settings-section">
+              <h5 class="section-title">
+                <i class="bi bi-window me-2"></i>
+                In-App Notifications
+              </h5>
+              <div formGroupName="inAppNotifications">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="maxNotifications" class="form-label">Maximum Notifications</label>
+                      <input type="number" class="form-control" id="maxNotifications" 
+                             formControlName="maxNotifications">
+                      <div class="invalid-feedback d-block" 
+                           *ngIf="getFieldErrorMessage(preferencesForm.get('inAppNotifications')!, 'maxNotifications')">
+                        {{ getFieldErrorMessage(preferencesForm.get('inAppNotifications')!, 'maxNotifications') }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="notification-options">
+                  <div class="form-check" *ngFor="let option of inAppNotificationOptions">
+                    <input type="checkbox" class="form-check-input" 
+                           [id]="option.field" [formControlName]="option.field">
+                    <label class="form-check-label" [for]="option.field">
+                      <i class="bi" [class]="option.icon"></i>
+                      {{ option.label }}
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="settings-section">
+              <h5 class="section-title">
+                <i class="bi bi-grid-3x3-gap me-2"></i>
+                Notification Categories
+              </h5>
+              <div formGroupName="categories">
+                <div class="notification-options">
+                  <div class="form-check" *ngFor="let option of categoryOptions">
+                    <input type="checkbox" class="form-check-input" 
+                           [id]="option.field" [formControlName]="option.field">
+                    <label class="form-check-label" [for]="option.field">
+                      <i class="bi" [class]="option.icon"></i>
+                      {{ option.label }}
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Quiet Hours Tab -->
+        <div *ngIf="activeTab === 'quiet'" class="tab-pane fade show active">
+          <form [formGroup]="quietHoursForm">
+            <div class="settings-section">
+              <h5 class="section-title">
+                <i class="bi bi-moon me-2"></i>
+                Quiet Hours Settings
+              </h5>
+              <p class="text-muted">Configure when you don't want to receive notifications.</p>
+
+              <div class="form-check form-switch mb-4">
+                <input type="checkbox" class="form-check-input" id="quietHoursEnabled" 
+                       formControlName="enabled">
+                <label class="form-check-label" for="quietHoursEnabled">
+                  Enable Quiet Hours
+                </label>
+              </div>
+
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="startTime" class="form-label">Start Time</label>
+                    <select class="form-select" id="startTime" formControlName="startTime">
+                      <option *ngFor="let time of timeOptions" [value]="time">
+                        {{ formatTime(time) }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="endTime" class="form-label">End Time</label>
+                    <select class="form-select" id="endTime" formControlName="endTime">
+                      <option *ngFor="let time of timeOptions" [value]="time">
+                        {{ formatTime(time) }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-check mb-3">
+                <input type="checkbox" class="form-check-input" id="weekendsOnly" 
+                       formControlName="weekendsOnly">
+                <label class="form-check-label" for="weekendsOnly">
+                  Weekends Only
+                </label>
+              </div>
+
+              <div class="form-check mb-3">
+                <input type="checkbox" class="form-check-input" id="emergencyOnly" 
+                       formControlName="emergencyOnly">
+                <label class="form-check-label" for="emergencyOnly">
+                  Emergency Notifications Only
+                </label>
+              </div>
+
+              <div class="form-group">
+                <label for="timezone" class="form-label">Timezone</label>
+                <select class="form-select" id="timezone" formControlName="timezone">
+                  <option value="UTC">UTC</option>
+                  <option value="EST">Eastern Time (EST)</option>
+                  <option value="CST">Central Time (CST)</option>
+                  <option value="MST">Mountain Time (MST)</option>
+                  <option value="PST">Pacific Time (PST)</option>
+                </select>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Frequency Tab -->
+        <div *ngIf="activeTab === 'frequency'" class="tab-pane fade show active">
+          <form [formGroup]="frequencyForm">
+            <div class="settings-section">
+              <h5 class="section-title">
+                <i class="bi bi-clock me-2"></i>
+                Notification Frequency
+              </h5>
+              <p class="text-muted">Control how often you receive notifications.</p>
+
+              <div class="frequency-options">
+                <div class="form-check">
+                  <input type="radio" class="form-check-input" id="immediate" 
+                         formControlName="immediate" name="frequency">
+                  <label class="form-check-label" for="immediate">
+                    <i class="bi bi-lightning me-2"></i>
+                    Immediate (Real-time notifications)
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input type="radio" class="form-check-input" id="hourly" 
+                         formControlName="hourly" name="frequency">
+                  <label class="form-check-label" for="hourly">
+                    <i class="bi bi-clock-history me-2"></i>
+                    Hourly Digest
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input type="radio" class="form-check-input" id="daily" 
+                         formControlName="daily" name="frequency">
+                  <label class="form-check-label" for="daily">
+                    <i class="bi bi-calendar-day me-2"></i>
+                    Daily Summary
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input type="radio" class="form-check-input" id="weekly" 
+                         formControlName="weekly" name="frequency">
+                  <label class="form-check-label" for="weekly">
+                    <i class="bi bi-calendar-week me-2"></i>
+                    Weekly Digest
+                  </label>
+                </div>
+              </div>
+
+              <div class="row g-3 mt-4">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="maxPerDay" class="form-label">Maximum per Day</label>
+                    <input type="number" class="form-control" id="maxPerDay" 
+                           formControlName="maxPerDay">
+                    <div class="invalid-feedback d-block" 
+                         *ngIf="getFieldErrorMessage(frequencyForm, 'maxPerDay')">
+                      {{ getFieldErrorMessage(frequencyForm, 'maxPerDay') }}
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="maxPerHour" class="form-label">Maximum per Hour</label>
+                    <input type="number" class="form-control" id="maxPerHour" 
+                           formControlName="maxPerHour">
+                    <div class="invalid-feedback d-block" 
+                         *ngIf="getFieldErrorMessage(frequencyForm, 'maxPerHour')">
+                      {{ getFieldErrorMessage(frequencyForm, 'maxPerHour') }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Test Notifications Tab -->
+        <div *ngIf="activeTab === 'test'" class="tab-pane fade show active">
+          <div class="settings-section">
+            <h5 class="section-title">
+              <i class="bi bi-play-circle me-2"></i>
+              Test Notifications
+            </h5>
+            <p class="text-muted">Send test notifications to verify your settings are working correctly.</p>
+
+            <div class="test-notifications">
+              <div class="row g-3">
+                <div class="col-md-3 col-sm-6">
+                  <button class="btn btn-info w-100" (click)="testNotification('info')">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Test Info
+                  </button>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                  <button class="btn btn-success w-100" (click)="testNotification('success')">
+                    <i class="bi bi-check-circle me-2"></i>
+                    Test Success
+                  </button>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                  <button class="btn btn-warning w-100" (click)="testNotification('warning')">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Test Warning
+                  </button>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                  <button class="btn btn-danger w-100" (click)="testNotification('error')">
+                    <i class="bi bi-x-circle me-2"></i>
+                    Test Error
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <button class="btn btn-outline-danger" (click)="clearAllNotifications()">
+                <i class="bi bi-trash me-2"></i>
+                Clear All Notifications
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save Actions -->
+      <div class="save-actions">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="save-info">
+            <small class="text-muted">
+              Last updated: {{ formatDate(currentPreferences?.updatedAt) }}
+            </small>
+          </div>
+          <div class="save-buttons">
+            <button type="button" class="btn btn-primary btn-lg" 
+                    (click)="saveAllPreferences()"
+                    [disabled]="isSaving">
+              <span *ngIf="isSaving" class="spinner-border spinner-border-sm me-2"></span>
+              <i class="bi bi-save me-2" *ngIf="!isSaving"></i>
+              {{ isSaving ? 'Saving...' : 'Save Preferences' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

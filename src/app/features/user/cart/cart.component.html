@@ -1,0 +1,228 @@
+<div class="cart-page">
+  <div class="container-custom py-4">
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1 class="page-title">Shopping Cart</h1>
+      <p class="page-subtitle">{{ cartItems.length }} item(s) in your cart</p>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state text-center py-5" *ngIf="isLoading">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading cart...</span>
+      </div>
+      <p class="mt-3 text-secondary">Loading your cart...</p>
+    </div>
+
+    <!-- Empty Cart State -->
+    <div class="empty-cart" *ngIf="!isLoading && isEmpty">
+      <div class="empty-cart-content">
+        <div class="empty-cart-icon">
+          <i class="bi bi-cart-x"></i>
+        </div>
+        <h2>Your cart is empty</h2>
+        <p>Looks like you haven't added any items to your cart yet.</p>
+        <div class="empty-cart-actions">
+          <button class="btn btn-primary btn-lg" routerLink="/products">
+            <i class="bi bi-shop"></i> Continue Shopping
+          </button>
+          <button class="btn btn-outline-secondary btn-lg" routerLink="/favorites">
+            <i class="bi bi-heart"></i> View Favorites
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cart Content -->
+    <div class="cart-content" *ngIf="!isLoading && !isEmpty">
+      <div class="row">
+        <!-- Cart Items -->
+        <div class="col-lg-8">
+          <div class="cart-items-section">
+            <!-- Cart Actions -->
+            <div class="cart-actions">
+              <button class="btn btn-outline-danger" (click)="clearCart()">
+                <i class="bi bi-trash"></i> Clear Cart
+              </button>
+              <button class="btn btn-outline-primary" (click)="compareItems()">
+                <i class="bi bi-arrow-left-right"></i> Compare Items
+              </button>
+            </div>
+
+            <!-- Cart Items List -->
+            <div class="cart-items">
+              <div class="cart-item" *ngFor="let item of cartItems">
+                <div class="cart-item-image">
+                  <img [src]="item.product?.image" [alt]="item.product?.name" (click)="navigateToProduct(item.productId)" />
+                </div>
+                
+                <div class="cart-item-details">
+                  <div class="item-info">
+                    <h4 class="item-name" (click)="navigateToProduct(item.productId)">{{ item.product?.name }}</h4>
+                    <p class="item-category">{{ item.product?.category }}</p>
+                    <div class="item-rating" *ngIf="item.product && item.product.rating">
+                      <i class="bi bi-star-fill" *ngFor="let star of getStars(item.product.rating || 0)"></i>
+                      <i class="bi bi-star" *ngFor="let star of getStars(5 - (item.product.rating || 0))"></i>
+                      <span class="rating-text">({{ item.product.reviews || 0 }})</span>
+                    </div>
+                  </div>
+                  
+                  <div class="item-price">
+                    <span class="current-price">{{ formatPrice(item.product?.price || 0) }}</span>
+                    <span class="item-total">Total: {{ formatPrice(getItemTotal(item)) }}</span>
+                  </div>
+                </div>
+
+                <div class="cart-item-controls">
+                  <div class="quantity-controls">
+                    <button class="btn btn-outline-secondary btn-sm" 
+                            (click)="decreaseQuantity(item)"
+                            [disabled]="item.quantity <= 1">
+                      <i class="bi bi-dash"></i>
+                    </button>
+                    <span class="quantity-display">{{ item.quantity }}</span>
+                    <button class="btn btn-outline-secondary btn-sm" 
+                            (click)="increaseQuantity(item)"
+                            [disabled]="item.quantity >= 10 || !item.product?.inStock">
+                      <i class="bi bi-plus"></i>
+                    </button>
+                  </div>
+                  
+                  <div class="item-actions">
+                    <button class="btn btn-outline-primary btn-sm" (click)="addToFavorites(item.productId)">
+                      <i class="bi bi-heart"></i>
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" (click)="removeItem(item)">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="cart-item-stock">
+                  <span class="stock-status" [class.in-stock]="item.product?.inStock" [class.out-of-stock]="!item.product?.inStock">
+                    <i class="bi" [class]="item.product?.inStock ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+                    {{ getStockStatus(item) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cart Summary -->
+        <div class="col-lg-4">
+          <div class="cart-summary-section">
+            <div class="summary-card">
+              <h3 class="summary-title">Order Summary</h3>
+              
+              <div class="summary-row">
+                <span>Subtotal ({{ cartItems.length }} items)</span>
+                <span>{{ formatPrice(summary.subtotal) }}</span>
+              </div>
+              
+              <div class="summary-row">
+                <span>Shipping</span>
+                <span>{{ summary.shipping === 0 ? 'FREE' : formatPrice(summary.shipping) }}</span>
+              </div>
+              
+              <div class="summary-row">
+                <span>Tax</span>
+                <span>{{ formatPrice(summary.tax) }}</span>
+              </div>
+              
+              <div class="summary-row discount-row" *ngIf="summary.discount > 0">
+                <span>Discount</span>
+                <span class="discount-text">-{{ formatPrice(summary.discount) }}</span>
+              </div>
+              
+              <div class="summary-divider"></div>
+              
+              <div class="summary-row total-row">
+                <span>Total</span>
+                <span class="total-price">{{ formatPrice(summary.total) }}</span>
+              </div>
+
+              <!-- Promo Code -->
+              <div class="promo-code-section">
+                <div class="promo-form" *ngIf="!promoApplied">
+                  <form [formGroup]="promoForm" (ngSubmit)="applyPromoCode()">
+                    <div class="input-group">
+                      <input type="text" 
+                             class="form-control" 
+                             formControlName="promoCode" 
+                             placeholder="Enter promo code"
+                             maxlength="20">
+                      <button type="submit" class="btn btn-primary" [disabled]="!promoForm.valid">
+                        Apply
+                      </button>
+                    </div>
+                  </form>
+                </div>
+                
+                <div class="promo-applied" *ngIf="promoApplied">
+                  <div class="promo-success">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>{{ promoMessage }}</span>
+                    <button class="btn btn-sm btn-outline-secondary" (click)="removePromoCode()">
+                      <i class="bi bi-x"></i>
+                    </button>
+                  </div>
+                </div>
+                
+                <div class="promo-message" *ngIf="promoMessage && !promoApplied">
+                  <div class="promo-error">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>{{ promoMessage }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Checkout Button -->
+              <button class="btn btn-success btn-lg checkout-btn" (click)="proceedToCheckout()">
+                <i class="bi bi-lock"></i> Proceed to Checkout
+              </button>
+
+              <!-- Security Info -->
+              <div class="security-info">
+                <i class="bi bi-shield-check"></i>
+                <span>Secure checkout powered by SSL encryption</span>
+              </div>
+
+              <!-- Shipping Info -->
+              <div class="shipping-info" *ngIf="summary.shipping === 0">
+                <i class="bi bi-truck"></i>
+                <span>Free shipping on orders over $100!</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recommended Products -->
+    <div class="recommended-products-section" *ngIf="!isLoading && isEmpty && recommendedProducts.length > 0">
+      <h3 class="section-title">Recommended for You</h3>
+      <div class="recommended-products-grid">
+        <div class="recommended-product-card" *ngFor="let product of recommendedProducts" routerLink="/product/{{ product.id }}">
+          <div class="recommended-product-image">
+            <img [src]="product.image" [alt]="product.name" />
+            <div class="product-badge" *ngIf="product.featured">
+              <i class="bi bi-star-fill"></i> Featured
+            </div>
+          </div>
+          <div class="recommended-product-info">
+            <h4>{{ product.name }}</h4>
+            <div class="recommended-product-price">{{ formatPrice(product.price) }}</div>
+            <div class="recommended-product-rating">
+              <i class="bi bi-star-fill" *ngFor="let star of getStars(product.rating || 0)"></i>
+              <i class="bi bi-star" *ngFor="let star of getStars(5 - (product.rating || 0))"></i>
+            </div>
+            <button class="btn btn-primary btn-sm" (click)="addToFavorites(product.id)">
+              <i class="bi bi-heart"></i> Add to Favorites
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

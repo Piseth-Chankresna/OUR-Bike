@@ -1,0 +1,532 @@
+<div class="checkout-page">
+  <div class="container-custom py-4">
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1 class="page-title">Checkout</h1>
+      <p class="page-subtitle">Complete your order in just a few steps</p>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state text-center py-5" *ngIf="isLoading">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading checkout...</span>
+      </div>
+      <p class="mt-3 text-secondary">Preparing checkout...</p>
+    </div>
+
+    <!-- Order Confirmation -->
+    <div class="order-confirmation" *ngIf="orderPlaced && placedOrder">
+      <div class="confirmation-card">
+        <div class="confirmation-header">
+          <div class="success-icon">
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
+          <h2>Order Placed Successfully!</h2>
+          <p>Thank you for your order. We've received it and will begin processing shortly.</p>
+        </div>
+
+        <div class="order-details">
+          <div class="order-info">
+            <h3>Order Information</h3>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="label">Order Number:</span>
+                <span class="value">{{ placedOrder.id }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Status:</span>
+                <span class="value status-pending">{{ placedOrder.status }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Total Amount:</span>
+                <span class="value">{{ formatPrice(placedOrder.summary.total) }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Estimated Delivery:</span>
+                <span class="value">{{ placedOrder.estimatedDelivery | date:'mediumDate' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Tracking Number:</span>
+                <span class="value">{{ placedOrder.trackingNumber }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="shipping-info">
+            <h3>Shipping Address</h3>
+            <div class="address-display">
+              <p>{{ placedOrder.shippingAddress.firstName }} {{ placedOrder.shippingAddress.lastName }}</p>
+              <p>{{ placedOrder.shippingAddress.street }}</p>
+              <p>{{ placedOrder.shippingAddress.city }}, {{ placedOrder.shippingAddress.state }} {{ placedOrder.shippingAddress.zipCode }}</p>
+              <p>{{ placedOrder.shippingAddress.country }}</p>
+              <p>{{ placedOrder.shippingAddress.email }}</p>
+              <p>{{ placedOrder.shippingAddress.phone }}</p>
+            </div>
+          </div>
+
+          <div class="order-items">
+            <h3>Order Items</h3>
+            <div class="items-list">
+              <div class="order-item" *ngFor="let item of placedOrder.items">
+                <div class="item-image">
+                  <img [src]="item.product?.image" [alt]="item.product?.name" />
+                </div>
+                <div class="item-details">
+                  <h4>{{ item.product?.name }}</h4>
+                  <p>Quantity: {{ item.quantity }}</p>
+                </div>
+                <div class="item-price">
+                  {{ formatPrice(getItemTotal(item)) }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="confirmation-actions">
+          <button class="btn btn-primary" (click)="continueShopping()">
+            <i class="bi bi-shop"></i> Continue Shopping
+          </button>
+          <button class="btn btn-outline-primary" (click)="viewOrderDetails()">
+            <i class="bi bi-list-check"></i> View Order Details
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Checkout Process -->
+    <div class="checkout-process" *ngIf="!orderPlaced && !isLoading">
+      <!-- Progress Steps -->
+      <div class="checkout-steps">
+        <div class="steps-container">
+          <div class="step" 
+               *ngFor="let step of [1, 2, 3]" 
+               [class]="getStepClass(step)"
+               (click)="goToStep(step)">
+            <div class="step-number">{{ step }}</div>
+            <div class="step-label">
+              <span *ngIf="step === 1">Contact & Shipping</span>
+              <span *ngIf="step === 2">Billing & Payment</span>
+              <span *ngIf="step === 3">Review & Confirm</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+          <!-- Step 1: Contact & Shipping -->
+          <div class="step-content" *ngIf="currentStep === 1">
+            <div class="step-header">
+              <h2>Contact Information</h2>
+              <p>We'll use this information to contact you about your order</p>
+            </div>
+
+            <form [formGroup]="checkoutForm" class="contact-form">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Email Address *</label>
+                    <input type="email" class="form-control" formControlName="email" />
+                    <div class="error-message" *ngIf="getErrorMessage(checkoutForm, 'email')">
+                      {{ getErrorMessage(checkoutForm, 'email') }}
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Phone Number *</label>
+                    <input type="tel" class="form-control" formControlName="phone" />
+                    <div class="error-message" *ngIf="getErrorMessage(checkoutForm, 'phone')">
+                      {{ getErrorMessage(checkoutForm, 'phone') }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Order Notes (Optional)</label>
+                <textarea class="form-control" formControlName="notes" rows="3" 
+                          placeholder="Special instructions for delivery..."></textarea>
+              </div>
+            </form>
+
+            <div class="step-header mt-5">
+              <h2>Shipping Address</h2>
+              <p>Where should we deliver your order?</p>
+            </div>
+
+            <form [formGroup]="shippingForm" class="address-form">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">First Name *</label>
+                    <input type="text" class="form-control" formControlName="firstName" />
+                    <div class="error-message" *ngIf="getErrorMessage(shippingForm, 'firstName')">
+                      {{ getErrorMessage(shippingForm, 'firstName') }}
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Last Name *</label>
+                    <input type="text" class="form-control" formControlName="lastName" />
+                    <div class="error-message" *ngIf="getErrorMessage(shippingForm, 'lastName')">
+                      {{ getErrorMessage(shippingForm, 'lastName') }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Street Address *</label>
+                <input type="text" class="form-control" formControlName="street" />
+                <div class="error-message" *ngIf="getErrorMessage(shippingForm, 'street')">
+                  {{ getErrorMessage(shippingForm, 'street') }}
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label class="form-label">City *</label>
+                    <input type="text" class="form-control" formControlName="city" />
+                    <div class="error-message" *ngIf="getErrorMessage(shippingForm, 'city')">
+                      {{ getErrorMessage(shippingForm, 'city') }}
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label class="form-label">State *</label>
+                    <input type="text" class="form-control" formControlName="state" />
+                    <div class="error-message" *ngIf="getErrorMessage(shippingForm, 'state')">
+                      {{ getErrorMessage(shippingForm, 'state') }}
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label class="form-label">ZIP Code *</label>
+                    <input type="text" class="form-control" formControlName="zipCode" />
+                    <div class="error-message" *ngIf="getErrorMessage(shippingForm, 'zipCode')">
+                      {{ getErrorMessage(shippingForm, 'zipCode') }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Country *</label>
+                <select class="form-control" formControlName="country">
+                  <option value="United States">United States</option>
+                  <option value="Canada">Canada</option>
+                  <option value="United Kingdom">United Kingdom</option>
+                  <option value="Australia">Australia</option>
+                </select>
+              </div>
+            </form>
+
+            <div class="step-actions">
+              <button class="btn btn-primary btn-lg" (click)="nextStep()">
+                Continue to Billing <i class="bi bi-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 2: Billing & Payment -->
+          <div class="step-content" *ngIf="currentStep === 2">
+            <div class="step-header">
+              <h2>Billing Address</h2>
+              <p>Where should we send the invoice?</p>
+            </div>
+
+            <div class="billing-options">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="sameAsBilling" 
+                       name="sameAsBilling"
+                       [(ngModel)]="sameAsBilling" (ngModelChange)="onSameAsBillingChange()">
+                <label class="form-check-label" for="sameAsBilling">
+                  Same as shipping address
+                </label>
+              </div>
+            </div>
+
+            <form [formGroup]="billingForm" class="address-form" *ngIf="!sameAsBilling">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">First Name *</label>
+                    <input type="text" class="form-control" formControlName="firstName" />
+                    <div class="error-message" *ngIf="getErrorMessage(billingForm, 'firstName')">
+                      {{ getErrorMessage(billingForm, 'firstName') }}
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Last Name *</label>
+                    <input type="text" class="form-control" formControlName="lastName" />
+                    <div class="error-message" *ngIf="getErrorMessage(billingForm, 'lastName')">
+                      {{ getErrorMessage(billingForm, 'lastName') }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Street Address *</label>
+                <input type="text" class="form-control" formControlName="street" />
+                <div class="error-message" *ngIf="getErrorMessage(billingForm, 'street')">
+                  {{ getErrorMessage(billingForm, 'street') }}
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label class="form-label">City *</label>
+                    <input type="text" class="form-control" formControlName="city" />
+                    <div class="error-message" *ngIf="getErrorMessage(billingForm, 'city')">
+                      {{ getErrorMessage(billingForm, 'city') }}
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label class="form-label">State *</label>
+                    <input type="text" class="form-control" formControlName="state" />
+                    <div class="error-message" *ngIf="getErrorMessage(billingForm, 'state')">
+                      {{ getErrorMessage(billingForm, 'state') }}
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label class="form-label">ZIP Code *</label>
+                    <input type="text" class="form-control" formControlName="zipCode" />
+                    <div class="error-message" *ngIf="getErrorMessage(billingForm, 'zipCode')">
+                      {{ getErrorMessage(billingForm, 'zipCode') }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+
+            <div class="step-header mt-5">
+              <h2>Payment Method</h2>
+              <p>Choose your preferred payment method</p>
+            </div>
+
+            <div class="payment-methods">
+              <div class="payment-method" 
+                   *ngFor="let method of paymentMethods"
+                   [class.selected]="selectedPaymentMethod === method.id"
+                   (click)="selectPaymentMethod(method.id)">
+                <div class="payment-icon">
+                  <i class="bi" [class]="method.icon"></i>
+                </div>
+                <div class="payment-info">
+                  <h4>{{ method.name }}</h4>
+                  <p *ngIf="method.id === 'cash-on-delivery'">Pay when you receive your order</p>
+                  <p *ngIf="method.id === 'paypal'">Fast and secure payment</p>
+                  <p *ngIf="method.id === 'credit-card' || method.id === 'debit-card'">Secure card payment</p>
+                </div>
+              </div>
+            </div>
+
+            <form [formGroup]="paymentForm" class="payment-form" 
+                  *ngIf="selectedPaymentMethod === 'credit-card' || selectedPaymentMethod === 'debit-card'">
+              <div class="form-group">
+                <label class="form-label">Card Number *</label>
+                <input type="text" class="form-control" formControlName="cardNumber" 
+                       placeholder="1234 5678 9012 3456" maxlength="16" />
+                <div class="error-message" *ngIf="getErrorMessage(paymentForm, 'cardNumber')">
+                  {{ getErrorMessage(paymentForm, 'cardNumber') }}
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Cardholder Name *</label>
+                <input type="text" class="form-control" formControlName="cardName" />
+                <div class="error-message" *ngIf="getErrorMessage(paymentForm, 'cardName')">
+                  {{ getErrorMessage(paymentForm, 'cardName') }}
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Expiry Date *</label>
+                    <input type="text" class="form-control" formControlName="expiryDate" 
+                           placeholder="MM/YY" maxlength="5" />
+                    <div class="error-message" *ngIf="getErrorMessage(paymentForm, 'expiryDate')">
+                      {{ getErrorMessage(paymentForm, 'expiryDate') }}
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">CVV *</label>
+                    <input type="text" class="form-control" formControlName="cvv" 
+                           placeholder="123" maxlength="4" />
+                    <div class="error-message" *ngIf="getErrorMessage(paymentForm, 'cvv')">
+                      {{ getErrorMessage(paymentForm, 'cvv') }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="saveCard" formControlName="saveCard">
+                <label class="form-check-label" for="saveCard">
+                  Save card information for future purchases
+                </label>
+              </div>
+            </form>
+
+            <div class="step-actions">
+              <button class="btn btn-outline-secondary" (click)="previousStep()">
+                <i class="bi bi-arrow-left"></i> Back
+              </button>
+              <button class="btn btn-primary btn-lg" (click)="nextStep()">
+                Review Order <i class="bi bi-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 3: Review & Confirm -->
+          <div class="step-content" *ngIf="currentStep === 3">
+            <div class="step-header">
+              <h2>Review Your Order</h2>
+              <p>Please review your order details before placing it</p>
+            </div>
+
+            <div class="order-review">
+              <!-- Order Items -->
+              <div class="review-section">
+                <h3>Order Items ({{ cartItems.length }})</h3>
+                <div class="review-items">
+                  <div class="review-item" *ngFor="let item of cartItems">
+                    <div class="item-image">
+                      <img [src]="item.product?.image" [alt]="item.product?.name" />
+                    </div>
+                    <div class="item-details">
+                      <h4>{{ item.product?.name }}</h4>
+                      <p>Quantity: {{ item.quantity }}</p>
+                    </div>
+                    <div class="item-price">
+                      {{ formatPrice(getItemTotal(item)) }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Shipping Address -->
+              <div class="review-section">
+                <h3>Shipping Address</h3>
+                <div class="address-review">
+                  <p>{{ shippingForm.value.firstName }} {{ shippingForm.value.lastName }}</p>
+                  <p>{{ shippingForm.value.street }}</p>
+                  <p>{{ shippingForm.value.city }}, {{ shippingForm.value.state }} {{ shippingForm.value.zipCode }}</p>
+                  <p>{{ shippingForm.value.country }}</p>
+                  <p>{{ checkoutForm.value.email }}</p>
+                  <p>{{ checkoutForm.value.phone }}</p>
+                </div>
+              </div>
+
+              <!-- Payment Method -->
+              <div class="review-section">
+                <h3>Payment Method</h3>
+                <div class="payment-review">
+                  <div class="payment-selected">
+                    <i class="bi" [class]="getPaymentIcon(selectedPaymentMethod)"></i>
+                    <span>{{ paymentMethods.find(m => m.id === selectedPaymentMethod)?.name }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Order Summary -->
+              <div class="review-section">
+                <h3>Order Summary</h3>
+                <div class="summary-review">
+                  <div class="summary-row">
+                    <span>Subtotal ({{ cartItems.length }} items)</span>
+                    <span>{{ formatPrice(summary.subtotal) }}</span>
+                  </div>
+                  <div class="summary-row">
+                    <span>Shipping</span>
+                    <span>{{ summary.shipping === 0 ? 'FREE' : formatPrice(summary.shipping) }}</span>
+                  </div>
+                  <div class="summary-row">
+                    <span>Tax</span>
+                    <span>{{ formatPrice(summary.tax) }}</span>
+                  </div>
+                  <div class="summary-row total-row">
+                    <span>Total</span>
+                    <span class="total-price">{{ formatPrice(summary.total) }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Order Notes -->
+              <div class="review-section" *ngIf="checkoutForm.value.notes">
+                <h3>Order Notes</h3>
+                <div class="notes-review">
+                  <p>{{ checkoutForm.value.notes }}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-actions">
+              <button class="btn btn-outline-secondary" (click)="previousStep()">
+                <i class="bi bi-arrow-left"></i> Back
+              </button>
+              <button class="btn btn-success btn-lg" (click)="placeOrder()" [disabled]="isProcessing">
+                <span *ngIf="!isProcessing">
+                  <i class="bi bi-check-circle"></i> Place Order
+                </span>
+                <span *ngIf="isProcessing">
+                  <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                  Processing...
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order Summary Sidebar -->
+        <div class="col-lg-4">
+          <div class="order-summary-sidebar">
+            <h3>Order Summary</h3>
+            <div class="summary-items">
+              <div class="summary-item" *ngFor="let item of cartItems">
+                <div class="item-info">
+                  <h4>{{ item.product?.name }}</h4>
+                  <p>Qty: {{ item.quantity }}</p>
+                </div>
+                <div class="item-total">
+                  {{ formatPrice(getItemTotal(item)) }}
+                </div>
+              </div>
+            </div>
+            <div class="summary-totals">
+              <div class="total-row">
+                <span>Subtotal</span>
+                <span>{{ formatPrice(summary.subtotal) }}</span>
+              </div>
+              <div class="total-row">
+                <span>Shipping</span>
+                <span>{{ summary.shipping === 0 ? 'FREE' : formatPrice(summary.shipping) }}</span>
+              </div>
+              <div class="total-row">
+                <span>Tax</span>
+                <span>{{ formatPrice(summary.tax) }}</span>
+              </div>
+              <div class="total-row final-total">
+                <span>Total</span>
+                <span>{{ formatPrice(summary.total) }}</span>
+              </div>
+            </div>
+            <div class="security-info">
+              <i class="bi bi-shield-check"></i>
+              <span>Secure checkout powered by SSL encryption</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

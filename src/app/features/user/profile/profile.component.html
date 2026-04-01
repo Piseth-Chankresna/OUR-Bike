@@ -1,0 +1,812 @@
+<div class="profile-page">
+  <div class="container-custom">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="row align-items-center mb-4">
+        <div class="col-md-6">
+          <h1 class="page-title">
+            <i class="bi bi-person-circle me-2"></i>
+            My Profile
+          </h1>
+          <p class="page-subtitle">Manage your account settings and preferences</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <div class="user-info">
+            <span class="user-email">{{ currentUser?.email }}</span>
+            <span class="user-member-since">Member since {{ formatDate(currentUser?.createdAt || Date.now()) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3 text-secondary">Loading your profile...</p>
+      </div>
+    </div>
+
+    <!-- Profile Content -->
+    <div *ngIf="!isLoading" class="profile-content">
+      <!-- Navigation Tabs -->
+      <div class="profile-tabs mb-4">
+        <ul class="nav nav-tabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" [class.active]="activeTab === 'overview'" (click)="setActiveTab('overview')">
+              <i class="bi bi-grid me-2"></i>
+              Overview
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" [class.active]="activeTab === 'personal'" (click)="setActiveTab('personal')">
+              <i class="bi bi-person me-2"></i>
+              Personal Info
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" [class.active]="activeTab === 'addresses'" (click)="setActiveTab('addresses')">
+              <i class="bi bi-geo-alt me-2"></i>
+              Addresses
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" [class.active]="activeTab === 'orders'" (click)="setActiveTab('orders')">
+              <i class="bi bi-bag me-2"></i>
+              Order History
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" [class.active]="activeTab === 'settings'" (click)="setActiveTab('settings')">
+              <i class="bi bi-gear me-2"></i>
+              Settings
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="tab-content">
+        <!-- Overview Tab -->
+        <div *ngIf="activeTab === 'overview'" class="tab-pane active">
+          <div class="overview-content">
+            <!-- Profile Header with Picture -->
+            <div class="profile-header mb-4">
+              <div class="row align-items-center">
+                <div class="col-auto">
+                  <div class="profile-picture-container">
+                    <img [src]="profilePictureUrl || 'https://picsum.photos/seed/default-avatar/150/150.jpg'" 
+                         alt="Profile Picture" 
+                         class="profile-picture rounded-circle">
+                    <div class="profile-picture-overlay" (click)="toggleProfilePictureUpload()">
+                      <i class="bi bi-camera"></i>
+                    </div>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="profile-info">
+                    <h3 class="profile-name">{{ currentUser?.firstName }} {{ currentUser?.lastName }}</h3>
+                    <p class="profile-email">{{ currentUser?.email }}</p>
+                    <p class="profile-member-since">Member since {{ formatDate(currentUser?.createdAt || Date.now()) }}</p>
+                  </div>
+                </div>
+                <div class="col-auto">
+                  <button class="btn btn-primary" (click)="toggleProfilePictureUpload()">
+                    <i class="bi bi-camera me-2"></i>
+                    Change Picture
+                  </button>
+                </div>
+              </div>
+            </div>
+            <!-- Statistics Cards -->
+            <div class="row g-4 mb-4">
+              <div class="col-md-3">
+                <div class="stat-card">
+                  <div class="stat-icon">
+                    <i class="bi bi-bag-fill text-primary"></i>
+                  </div>
+                  <div class="stat-content">
+                    <h3 class="stat-number">{{ totalOrders }}</h3>
+                    <p class="stat-label">Total Orders</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="stat-card">
+                  <div class="stat-icon">
+                    <i class="bi bi-currency-dollar text-success"></i>
+                  </div>
+                  <div class="stat-content">
+                    <h3 class="stat-number">{{ formatPrice(totalSpent) }}</h3>
+                    <p class="stat-label">Total Spent</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="stat-card">
+                  <div class="stat-icon">
+                    <i class="bi bi-clock-history text-warning"></i>
+                  </div>
+                  <div class="stat-content">
+                    <h3 class="stat-number">{{ pendingOrders }}</h3>
+                    <p class="stat-label">Pending Orders</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="stat-card">
+                  <div class="stat-icon">
+                    <i class="bi bi-check-circle text-info"></i>
+                  </div>
+                  <div class="stat-content">
+                    <h3 class="stat-number">{{ completedOrders }}</h3>
+                    <p class="stat-label">Completed Orders</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+              <h4 class="section-title">Quick Actions</h4>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <div class="action-card" (click)="setActiveTab('personal')">
+                    <div class="action-icon">
+                      <i class="bi bi-person-edit"></i>
+                    </div>
+                    <div class="action-content">
+                      <h5>Edit Profile</h5>
+                      <p>Update your personal information</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="action-card" (click)="setActiveTab('addresses')">
+                    <div class="action-icon">
+                      <i class="bi bi-geo-alt"></i>
+                    </div>
+                    <div class="action-content">
+                      <h5>Manage Addresses</h5>
+                      <p>Add or edit shipping addresses</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="action-card" (click)="setActiveTab('orders')">
+                    <div class="action-icon">
+                      <i class="bi bi-bag"></i>
+                    </div>
+                    <div class="action-content">
+                      <h5>View Orders</h5>
+                      <p>Check your order history</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Orders -->
+            <div class="recent-orders" *ngIf="userOrders.length > 0">
+              <h4 class="section-title">Recent Orders</h4>
+              <div class="row g-3">
+                <div class="col-md-6" *ngFor="let order of userOrders.slice(0, 4)">
+                  <div class="order-card">
+                    <div class="order-header">
+                      <div class="order-info">
+                        <h6 class="order-id">Order #{{ order.id.slice(-8) }}</h6>
+                        <span class="order-date">{{ formatDate(order.orderDate) }}</span>
+                      </div>
+                      <div class="order-status">
+                        <span class="badge bg-{{ getOrderStatusColor(order.status) }}">
+                          {{ getOrderStatusText(order.status) }}
+                        </span>
+                      </div>
+                    </div>
+                    <div class="order-body">
+                      <div class="order-products">
+                        <span *ngFor="let product of order.products.slice(0, 2)" class="product-name">
+                          {{ product.productName }}
+                        </span>
+                        <span *ngIf="order.products.length > 2" class="more-products">
+                          +{{ order.products.length - 2 }} more
+                        </span>
+                      </div>
+                      <div class="order-total">
+                        <strong>{{ formatPrice(order.totalAmount) }}</strong>
+                      </div>
+                    </div>
+                    <div class="order-footer">
+                      <button class="btn btn-outline-primary btn-sm" (click)="goToOrder(order.id)">
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Personal Info Tab -->
+        <div *ngIf="activeTab === 'personal'" class="tab-pane active">
+          <div class="personal-info">
+            <div class="section-header">
+              <h4 class="section-title">Personal Information</h4>
+              <button class="btn btn-primary" (click)="toggleEditProfile()" *ngIf="!showEditProfile">
+                <i class="bi bi-pencil me-2"></i>
+                Edit Profile
+              </button>
+            </div>
+
+            <!-- View Mode -->
+            <div *ngIf="!showEditProfile" class="profile-view">
+              <div class="row g-4">
+                <div class="col-md-6">
+                  <div class="info-group">
+                    <label class="info-label">First Name</label>
+                    <p class="info-value">{{ currentUser?.firstName || 'Not provided' }}</p>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="info-group">
+                    <label class="info-label">Last Name</label>
+                    <p class="info-value">{{ currentUser?.lastName || 'Not provided' }}</p>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="info-group">
+                    <label class="info-label">Email</label>
+                    <p class="info-value">{{ currentUser?.email }}</p>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="info-group">
+                    <label class="info-label">Phone</label>
+                    <p class="info-value">{{ currentUser?.phone || 'Not provided' }}</p>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="info-group">
+                    <label class="info-label">Date of Birth</label>
+                    <p class="info-value">{{ currentUser?.dateOfBirth || 'Not provided' }}</p>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="info-group">
+                    <label class="info-label">Gender</label>
+                    <p class="info-value">{{ currentUser?.gender || 'Not provided' }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Edit Mode -->
+            <div *ngIf="showEditProfile" class="profile-edit">
+              <form [formGroup]="profileForm" class="row g-3">
+                <div class="col-md-6">
+                  <label for="firstName" class="form-label">First Name</label>
+                  <input type="text" id="firstName" class="form-control" formControlName="firstName" required>
+                  <div class="invalid-feedback" *ngIf="profileForm.get('firstName')?.invalid && profileForm.get('firstName')?.touched">
+                    First name is required
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label for="lastName" class="form-label">Last Name</label>
+                  <input type="text" id="lastName" class="form-control" formControlName="lastName" required>
+                  <div class="invalid-feedback" *ngIf="profileForm.get('lastName')?.invalid && profileForm.get('lastName')?.touched">
+                    Last name is required
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label for="phone" class="form-label">Phone</label>
+                  <input type="tel" id="phone" class="form-control" formControlName="phone">
+                </div>
+                <div class="col-md-6">
+                  <label for="dateOfBirth" class="form-label">Date of Birth</label>
+                  <input type="date" id="dateOfBirth" class="form-control" formControlName="dateOfBirth">
+                </div>
+                <div class="col-md-12">
+                  <label for="gender" class="form-label">Gender</label>
+                  <select id="gender" class="form-select" formControlName="gender">
+                    <option value="">Select Gender</option>
+                    <option *ngFor="let option of genderOptions" [value]="option">
+                      {{ option }}
+                    </option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <div class="form-actions">
+                    <button type="button" class="btn btn-primary" (click)="saveProfile()" [disabled]="profileForm.invalid">
+                      <i class="bi bi-check me-2"></i>
+                      Save Changes
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" (click)="cancelEditProfile()">
+                      <i class="bi bi-x me-2"></i>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Addresses Tab -->
+        <div *ngIf="activeTab === 'addresses'" class="tab-pane active">
+          <div class="addresses-section">
+            <div class="section-header">
+              <h4 class="section-title">Shipping Addresses</h4>
+              <button class="btn btn-primary" (click)="toggleAddAddress()" *ngIf="!showAddAddress && !showEditAddress">
+                <i class="bi bi-plus me-2"></i>
+                Add Address
+              </button>
+            </div>
+
+            <!-- Add/Edit Address Form -->
+            <div *ngIf="showAddAddress || showEditAddress" class="address-form">
+              <h5>{{ showEditAddress ? 'Edit Address' : 'Add New Address' }}</h5>
+              <form [formGroup]="addressForm" class="row g-3">
+                <div class="col-md-6">
+                  <label for="addressType" class="form-label">Address Type</label>
+                  <select id="addressType" class="form-select" formControlName="type">
+                    <option value="shipping">Shipping Address</option>
+                    <option value="billing">Billing Address</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label for="country" class="form-label">Country</label>
+                  <select id="country" class="form-select" formControlName="country">
+                    <option *ngFor="let country of countryOptions" [value]="country">
+                      {{ country }}
+                    </option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label for="firstName" class="form-label">First Name</label>
+                  <input type="text" id="firstName" class="form-control" formControlName="firstName" required>
+                </div>
+                <div class="col-md-6">
+                  <label for="lastName" class="form-label">Last Name</label>
+                  <input type="text" id="lastName" class="form-control" formControlName="lastName" required>
+                </div>
+                <div class="col-md-12">
+                  <label for="company" class="form-label">Company (Optional)</label>
+                  <input type="text" id="company" class="form-control" formControlName="company">
+                </div>
+                <div class="col-12">
+                  <label for="address" class="form-label">Street Address</label>
+                  <input type="text" id="address" class="form-control" formControlName="address" required>
+                </div>
+                <div class="col-md-12">
+                  <label for="apartment" class="form-label">Apartment, suite, etc. (Optional)</label>
+                  <input type="text" id="apartment" class="form-control" formControlName="apartment">
+                </div>
+                <div class="col-md-4">
+                  <label for="city" class="form-label">City</label>
+                  <input type="text" id="city" class="form-control" formControlName="city" required>
+                </div>
+                <div class="col-md-4">
+                  <label for="state" class="form-label">State/Province</label>
+                  <input type="text" id="state" class="form-control" formControlName="state" required>
+                </div>
+                <div class="col-md-4">
+                  <label for="zipCode" class="form-label">ZIP/Postal Code</label>
+                  <input type="text" id="zipCode" class="form-control" formControlName="zipCode" required>
+                </div>
+                <div class="col-12">
+                  <div class="form-check">
+                    <input type="checkbox" id="isDefault" class="form-check-input" formControlName="isDefault">
+                    <label for="isDefault" class="form-check-label">
+                      Set as default address
+                    </label>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <div class="form-actions">
+                    <button type="button" class="btn btn-primary" (click)="saveAddress()" [disabled]="addressForm.invalid">
+                      <i class="bi bi-check me-2"></i>
+                      {{ showEditAddress ? 'Update' : 'Save' }} Address
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" (click)="cancelAddress()">
+                      <i class="bi bi-x me-2"></i>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <!-- Addresses List -->
+            <div *ngIf="!showAddAddress && !showEditAddress" class="addresses-list">
+              <div *ngIf="userAddresses.length === 0" class="empty-addresses">
+                <div class="text-center py-5">
+                  <div class="empty-icon">
+                    <i class="bi bi-geo-alt"></i>
+                  </div>
+                  <h5>No Addresses Yet</h5>
+                  <p>Add your first shipping address to get started</p>
+                  <button class="btn btn-primary" (click)="toggleAddAddress()">
+                    <i class="bi bi-plus me-2"></i>
+                    Add Address
+                  </button>
+                </div>
+              </div>
+              
+              <div *ngIf="userAddresses.length > 0" class="row g-4">
+                <div class="col-md-6" *ngFor="let address of userAddresses">
+                  <div class="address-card" [class.default-address]="address.isDefault">
+                    <div class="address-header">
+                      <div class="address-type">
+                        <span class="badge bg-primary">{{ address.type === 'shipping' ? 'Shipping' : 'Billing' }}</span>
+                        <span *ngIf="address.isDefault" class="badge bg-success">Default</span>
+                      </div>
+                      <div class="address-actions">
+                        <button class="btn btn-sm btn-outline-primary" (click)="editAddress(address)">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" (click)="deleteAddress(address.id)">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="address-body">
+                      <h6>{{ address.firstName }} {{ address.lastName }}</h6>
+                      <p class="address-text">
+                        {{ address.address }}<br>
+                        <span *ngIf="address.apartment">{{ address.apartment }}<br></span>
+                        {{ address.city }}, {{ address.state }} {{ address.zipCode }}<br>
+                        {{ address.country }}
+                      </p>
+                    </div>
+                    <div class="address-footer" *ngIf="!address.isDefault">
+                      <button class="btn btn-sm btn-outline-success" (click)="setDefaultAddress(address.id)">
+                        <i class="bi bi-star me-1"></i>
+                        Set as Default
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Orders Tab -->
+        <div *ngIf="activeTab === 'orders'" class="tab-pane active">
+          <div class="orders-section">
+            <h4 class="section-title">Order History</h4>
+            
+            <div *ngIf="userOrders.length === 0" class="empty-orders">
+              <div class="text-center py-5">
+                <div class="empty-icon">
+                  <i class="bi bi-bag"></i>
+                </div>
+                <h5>No Orders Yet</h5>
+                <p>Start shopping to see your order history</p>
+                <a href="/products" class="btn btn-primary">
+                  <i class="bi bi-search me-2"></i>
+                  Browse Products
+                </a>
+              </div>
+            </div>
+
+            <div *ngIf="userOrders.length > 0" class="orders-list">
+              <div class="row g-4">
+                <div class="col-12" *ngFor="let order of userOrders">
+                  <div class="order-detail-card">
+                    <div class="order-header">
+                      <div class="order-info">
+                        <h6 class="order-id">Order #{{ order.id.slice(-8) }}</h6>
+                        <span class="order-date">{{ formatDate(order.orderDate) }}</span>
+                      </div>
+                      <div class="order-status">
+                        <span class="badge bg-{{ getOrderStatusColor(order.status) }}">
+                          {{ getOrderStatusText(order.status) }}
+                        </span>
+                      </div>
+                    </div>
+                    <div class="order-body">
+                      <div class="order-products">
+                        <div class="row g-3">
+                          <div class="col-md-8">
+                            <div class="products-list">
+                              <div *ngFor="let product of order.products" class="product-item">
+                                <div class="product-info">
+                                  <h6>{{ product.productName }}</h6>
+                                  <p>Quantity: {{ product.quantity }} | Price: {{ formatPrice(product.price) }}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <div class="order-summary">
+                              <div class="summary-row">
+                                <span>Subtotal:</span>
+                                <span>{{ formatPrice(order.totalAmount * 0.92) }}</span>
+                              </div>
+                              <div class="summary-row">
+                                <span>Tax (8%):</span>
+                                <span>{{ formatPrice(order.totalAmount * 0.08) }}</span>
+                              </div>
+                              <div class="summary-row total">
+                                <span>Total:</span>
+                                <span>{{ formatPrice(order.totalAmount) }}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="order-shipping">
+                        <h6>Shipping Address</h6>
+                        <p>{{ order.shippingAddress }}</p>
+                        <div *ngIf="order.trackingNumber" class="tracking-info">
+                          <strong>Tracking Number:</strong> {{ order.trackingNumber }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="order-footer">
+                      <button class="btn btn-primary" (click)="goToOrder(order.id)">
+                        <i class="bi bi-eye me-2"></i>
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div *ngIf="activeTab === 'settings'" class="tab-pane active">
+          <div class="settings-section">
+            <!-- Preferences -->
+            <div class="settings-group">
+              <h4 class="section-title">Preferences</h4>
+              <form [formGroup]="preferencesForm" class="preferences-form">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <div class="form-check form-switch">
+                      <input type="checkbox" id="newsletter" class="form-check-input" formControlName="newsletter">
+                      <label for="newsletter" class="form-check-label">
+                        Subscribe to newsletter
+                      </label>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-check form-switch">
+                      <input type="checkbox" id="notifications" class="form-check-input" formControlName="notifications">
+                      <label for="notifications" class="form-check-label">
+                        Email notifications
+                      </label>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-check form-switch">
+                      <input type="checkbox" id="marketing" class="form-check-input" formControlName="marketing">
+                      <label for="marketing" class="form-check-label">
+                        Marketing emails
+                      </label>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="language" class="form-label">Language</label>
+                    <select id="language" class="form-select" formControlName="language">
+                      <option *ngFor="let lang of languageOptions" [value]="lang">
+                        {{ lang }}
+                      </option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="currency" class="form-label">Currency</label>
+                    <select id="currency" class="form-select" formControlName="currency">
+                      <option *ngFor="let currency of currencyOptions" [value]="currency">
+                        {{ currency }}
+                      </option>
+                    </select>
+                  </div>
+                  <div class="col-12">
+                    <button type="button" class="btn btn-primary" (click)="savePreferences()">
+                      <i class="bi bi-check me-2"></i>
+                      Save Preferences
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <!-- Security -->
+            <div class="settings-group">
+              <h4 class="section-title">Security</h4>
+              <div class="security-options">
+                <div class="security-item">
+                  <button class="btn btn-outline-primary" (click)="togglePasswordChange()">
+                    <i class="bi bi-key me-2"></i>
+                    Change Password
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Account Actions -->
+            <div class="settings-group">
+              <h4 class="section-title">Account Actions</h4>
+              <div class="account-actions">
+                <div class="action-item">
+                  <div class="action-info">
+                    <h6>Logout</h6>
+                    <p>Sign out of your account securely</p>
+                  </div>
+                  <button class="btn btn-warning" (click)="logout()">
+                    <i class="bi bi-box-arrow-right me-2"></i>
+                    Logout
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Account Actions -->
+            <div class="settings-group danger-zone">
+              <h4 class="section-title">Danger Zone</h4>
+              <div class="account-actions">
+                <div class="action-item">
+                  <div class="action-info">
+                    <h6>Delete Account</h6>
+                    <p>Permanently delete your account and all data</p>
+                  </div>
+                  <button class="btn btn-danger" (click)="toggleAccountDeletion()">
+                    <i class="bi bi-trash me-2"></i>
+                    Delete Account
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Password Change Modal -->
+  <div class="modal fade" [class.show]="showPasswordChange" [style.display]="showPasswordChange ? 'block' : 'none'" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-key me-2"></i>
+            Change Password
+          </h5>
+          <button type="button" class="btn-close" (click)="cancelPasswordChange()"></button>
+        </div>
+        <div class="modal-body">
+          <form [formGroup]="passwordForm">
+            <div class="mb-3">
+              <label for="currentPassword" class="form-label">Current Password</label>
+              <input type="password" id="currentPassword" class="form-control" formControlName="currentPassword" required>
+            </div>
+            <div class="mb-3">
+              <label for="newPassword" class="form-label">New Password</label>
+              <input type="password" id="newPassword" class="form-control" formControlName="newPassword" required>
+              <div class="form-text">Password must be at least 8 characters long</div>
+            </div>
+            <div class="mb-3">
+              <label for="confirmPassword" class="form-label">Confirm New Password</label>
+              <input type="password" id="confirmPassword" class="form-control" formControlName="confirmPassword" required>
+              <div class="invalid-feedback" *ngIf="passwordForm.errors?.['mismatch']">
+                Passwords do not match
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cancelPasswordChange()">Cancel</button>
+          <button type="button" class="btn btn-primary" (click)="changePassword()" [disabled]="passwordForm.invalid">
+            <i class="bi bi-check me-2"></i>
+            Change Password
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Picture Upload Modal -->
+  <div class="modal fade" [class.show]="showProfilePictureUpload" [style.display]="showProfilePictureUpload ? 'block' : 'none'" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-camera me-2"></i>
+            Update Profile Picture
+          </h5>
+          <button type="button" class="btn-close" (click)="closeProfilePictureUpload()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="profile-picture-upload">
+            <!-- Current Picture Preview -->
+            <div class="current-picture mb-4">
+              <label class="form-label">Current Picture</label>
+              <div class="picture-preview">
+                <img [src]="profilePictureUrl || 'https://picsum.photos/seed/default-avatar/200/200.jpg'" 
+                     alt="Profile Picture" 
+                     class="img-fluid rounded-circle">
+              </div>
+            </div>
+
+            <!-- Upload New Picture -->
+            <div class="upload-section">
+              <label class="form-label">Upload New Picture</label>
+              <div class="upload-area" (click)="triggerFileInput()">
+                <div class="upload-content">
+                  <i class="bi bi-cloud-upload"></i>
+                  <p>Click to select an image or drag and drop</p>
+                  <small>Supported formats: JPEG, PNG, GIF (Max 5MB)</small>
+                </div>
+              </div>
+              <input type="file" 
+                     id="profilePictureInput" 
+                     class="d-none" 
+                     accept="image/*" 
+                     (change)="onProfilePictureSelected($event)">
+            </div>
+
+            <!-- Upload Progress -->
+            <div *ngIf="uploadingPicture" class="upload-progress mt-3">
+              <div class="progress">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                     role="progressbar" 
+                     style="width: 100%">
+                  Uploading...
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-danger" (click)="removeProfilePicture()" *ngIf="profilePictureUrl">
+            <i class="bi bi-trash me-2"></i>
+            Remove Current
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="closeProfilePictureUpload()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Account Deletion Modal -->
+  <div class="modal fade" [class.show]="showAccountDeletion" [style.display]="showAccountDeletion ? 'block' : 'none'" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            Delete Account
+          </h5>
+          <button type="button" class="btn-close" (click)="toggleAccountDeletion()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-danger">
+            <strong>Warning:</strong> This action cannot be undone.
+          </div>
+          <p>Deleting your account will:</p>
+          <ul>
+            <li>Permanently remove all your personal information</li>
+            <li>Delete all your order history</li>
+            <li>Remove all saved addresses</li>
+            <li>Cancel any pending orders</li>
+          </ul>
+          <p>Are you absolutely sure you want to proceed?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="toggleAccountDeletion()">Cancel</button>
+          <button type="button" class="btn btn-danger" (click)="deleteAccount()">
+            <i class="bi bi-trash me-2"></i>
+            Delete Account
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

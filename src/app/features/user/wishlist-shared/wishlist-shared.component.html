@@ -1,0 +1,209 @@
+<div class="wishlist-shared-page">
+  <div class="container-custom">
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading shared wishlist...</span>
+        </div>
+        <p class="mt-3 text-secondary">Loading shared wishlist...</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="!isLoading && error" class="error-state">
+      <div class="text-center py-5">
+        <div class="error-icon">
+          <i class="bi bi-exclamation-triangle"></i>
+        </div>
+        <h5>Wishlist Not Available</h5>
+        <p>{{ error }}</p>
+        <a routerLink="/" class="btn btn-primary">
+          <i class="bi bi-house me-2"></i>
+          Go to Homepage
+        </a>
+      </div>
+    </div>
+
+    <!-- Shared Wishlist Content -->
+    <div *ngIf="!isLoading && shareData && !error" class="shared-wishlist-content">
+      <!-- Header -->
+      <div class="wishlist-header">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <div class="wishlist-info">
+              <h1 class="wishlist-title">
+                <i class="bi bi-share me-2"></i>
+                Shared Wishlist
+              </h1>
+              <div class="wishlist-meta">
+                <span class="author">
+                  <i class="bi bi-person me-1"></i>
+                  {{ shareData.userName }}
+                </span>
+                <span class="date">
+                  <i class="bi bi-calendar me-1"></i>
+                  Shared on {{ formatDate(shareData.createdAt) }}
+                </span>
+                <span class="views">
+                  <i class="bi bi-eye me-1"></i>
+                  {{ shareData.viewCount }} views
+                </span>
+              </div>
+              <div class="wishlist-message" *ngIf="shareData.message">
+                <p class="message-text">{{ shareData.message }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4 text-md-end">
+            <div class="wishlist-actions">
+              <button class="btn btn-outline-primary" (click)="copyShareLink()">
+                <i class="bi bi-link-45deg me-1"></i>
+                Copy Link
+              </button>
+              <div class="dropdown d-inline-block ms-2">
+                <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                  <i class="bi bi-share me-1"></i>
+                  Share
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a class="dropdown-item" href="#" (click)="shareOnSocial('facebook')">
+                      <i class="bi bi-facebook me-2"></i>Facebook
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="#" (click)="shareOnSocial('twitter')">
+                      <i class="bi bi-twitter me-2"></i>Twitter
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="#" (click)="shareOnSocial('whatsapp')">
+                      <i class="bi bi-whatsapp me-2"></i>WhatsApp
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expiration Notice -->
+      <div class="expiration-notice" *ngIf="shareData.expiresAt">
+        <div class="alert alert-warning d-flex align-items-center">
+          <i class="bi bi-clock me-2"></i>
+          <div>
+            <strong>This wishlist expires in {{ getDaysUntilExpiration() }} days</strong>
+            <span class="text-muted">({{ formatDate(shareData.expiresAt) }})</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div class="wishlist-stats">
+        <div class="row g-3">
+          <div class="col-md-3">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="bi bi-box-seam"></i>
+              </div>
+              <div class="stat-content">
+                <h3>{{ getShareStats().totalProducts }}</h3>
+                <p>Products</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="bi bi-currency-dollar"></i>
+              </div>
+              <div class="stat-content">
+                <h3>{{ formatPrice(getShareStats().totalValue) }}</h3>
+                <p>Total Value</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="bi bi-check-circle"></i>
+              </div>
+              <div class="stat-content">
+                <h3>{{ getShareStats().inStockCount }}</h3>
+                <p>In Stock</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="bi bi-x-circle"></i>
+              </div>
+              <div class="stat-content">
+                <h3>{{ getShareStats().outOfStockCount }}</h3>
+                <p>Out of Stock</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Products Grid -->
+      <div class="wishlist-products">
+        <h3 class="section-title">
+          <i class="bi bi-grid-3x3-gap me-2"></i>
+          Products in Wishlist
+        </h3>
+        <div class="row g-4">
+          <div class="col-lg-3 col-md-4 col-sm-6" *ngFor="let product of sharedProducts">
+            <div class="product-card">
+              <div class="product-image">
+                <img [src]="getProductImage(product)" [alt]="product.name" class="img-fluid">
+                <div class="product-overlay">
+                  <a [routerLink]="['/product', product.id]" class="btn btn-primary btn-sm">
+                    <i class="bi bi-eye me-1"></i>
+                    View Details
+                  </a>
+                </div>
+              </div>
+              <div class="product-info">
+                <h6 class="product-name">{{ product.name }}</h6>
+                <p class="product-category">{{ getCategoryName(product.category) }}</p>
+                <div class="product-price">
+                  <strong>{{ formatPrice(product.price) }}</strong>
+                </div>
+                <div class="stock-status">
+                  <span class="badge" 
+                        [class.bg-success]="isInStock(product)" 
+                        [class.bg-danger]="!isInStock(product)">
+                    {{ isInStock(product) ? 'In Stock' : 'Out of Stock' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Call to Action -->
+      <div class="wishlist-cta">
+        <div class="text-center py-5">
+          <h4>Like this wishlist?</h4>
+          <p class="text-muted">Create your own wishlist and share it with friends!</p>
+          <div class="cta-buttons">
+            <a routerLink="/products" class="btn btn-primary btn-lg me-3">
+              <i class="bi bi-search me-2"></i>
+              Browse Products
+            </a>
+            <a routerLink="/auth/register" class="btn btn-outline-primary btn-lg">
+              <i class="bi bi-person-plus me-2"></i>
+              Sign Up
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

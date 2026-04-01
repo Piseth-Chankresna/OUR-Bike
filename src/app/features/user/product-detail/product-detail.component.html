@@ -1,0 +1,342 @@
+<div class="product-detail-page">
+  <!-- Loading State -->
+  <div class="loading-state text-center py-5" *ngIf="isLoading">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading product details...</span>
+    </div>
+    <p class="mt-3 text-secondary">Loading product details...</p>
+  </div>
+
+  <!-- Product Content -->
+  <div class="container-custom py-4" *ngIf="!isLoading && product">
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb mb-4">
+      <a class="breadcrumb-item" routerLink="/">Home</a>
+      <a class="breadcrumb-item" routerLink="/products">Products</a>
+      <a class="breadcrumb-item" routerLink="/products?category={{ product.category }}">{{ product.category }}</a>
+      <span class="breadcrumb-item active">{{ product.name }}</span>
+    </nav>
+
+    <!-- Product Main Section -->
+    <div class="product-main-section">
+      <div class="row">
+        <!-- Product Images -->
+        <div class="col-lg-6 col-md-5">
+          <div class="product-gallery">
+            <!-- Main Image -->
+            <div class="main-image-container" [class.zoomed]="isZoomed" (click)="toggleZoom()">
+              <img 
+                [src]="product.images[currentImageIndex] || product.images[0] || 'assets/images/placeholder.jpg'" 
+                [alt]="product.name"
+                class="main-image"
+              />
+              <div class="zoom-overlay" *ngIf="isZoomed">
+                <img 
+                  [src]="product.images[currentImageIndex] || product.images[0] || 'assets/images/placeholder.jpg'" 
+                  [alt]="product.name"
+                  class="zoomed-image"
+                />
+                <button class="btn btn-light zoom-close" (click)="toggleZoom()">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Image Navigation -->
+            <div class="image-navigation">
+              <button class="btn btn-outline-light nav-btn prev" (click)="prevImage()" [disabled]="!product.images || product.images.length <= 1">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+              <button class="btn btn-outline-light nav-btn next" (click)="nextImage()" [disabled]="!product.images || product.images.length <= 1">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
+
+            <!-- Thumbnail Gallery -->
+            <div class="thumbnail-gallery" *ngIf="product.images && product.images.length > 1">
+              <div 
+                class="thumbnail-item" 
+                *ngFor="let image of product.images; let i = index"
+                [class.active]="i === currentImageIndex"
+                (click)="selectImage(i)"
+              >
+                <img [src]="image" [alt]="'Thumbnail ' + (i + 1)" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product Info -->
+        <div class="col-lg-6 col-md-7">
+          <div class="product-info">
+            <!-- Product Title & Rating -->
+            <div class="product-header">
+              <h1 class="product-title">{{ product.name }}</h1>
+              <div class="product-rating">
+                <span class="stars">
+                  <i class="bi bi-star-fill" *ngFor="let star of getStars(product.rating || 0)"></i>
+                  <i class="bi bi-star" *ngFor="let star of getStars(5 - (product.rating || 0))"></i>
+                </span>
+                <span class="rating-text">{{ product.rating || 0 }} ({{ reviews.length || 0 }} reviews)</span>
+              </div>
+            </div>
+
+            <!-- Price & Availability -->
+            <div class="product-price-section">
+              <div class="price">
+                <span class="current-price">${{ product.price }}</span>
+                <span class="price-label">Best Price Guaranteed</span>
+              </div>
+              <div class="availability" [class.in-stock]="product.stock > 0" [class.out-of-stock]="product.stock <= 0">
+                <i class="bi" [class]="product.stock > 0 ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+                {{ product.stock > 0 ? 'In Stock' : 'Out of Stock' }}
+              </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+              <button class="btn btn-outline-primary" (click)="addToFavorites()">
+                <i class="bi bi-heart"></i> Add to Favorites
+              </button>
+              <div class="share-dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                  <i class="bi bi-share"></i> Share
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="#" (click)="shareProduct('facebook')">
+                    <i class="bi bi-facebook me-2"></i> Facebook
+                  </a></li>
+                  <li><a class="dropdown-item" href="#" (click)="shareProduct('twitter')">
+                    <i class="bi bi-twitter me-2"></i> Twitter
+                  </a></li>
+                  <li><a class="dropdown-item" href="#" (click)="shareProduct('whatsapp')">
+                    <i class="bi bi-whatsapp me-2"></i> WhatsApp
+                  </a></li>
+                  <li><a class="dropdown-item" href="#" (click)="shareProduct('copy')">
+                    <i class="bi bi-link me-2"></i> Copy Link
+                  </a></li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Purchase Section -->
+            <div class="purchase-section">
+              <form [formGroup]="purchaseForm" class="quantity-form">
+                <div class="quantity-selector">
+                  <label class="form-label">Quantity:</label>
+                  <div class="input-group">
+                    <button type="button" class="btn btn-outline-secondary" 
+                            (click)="decreaseQuantity()"
+                            [disabled]="purchaseForm.get('quantity')?.value <= 1">
+                      <i class="bi bi-dash"></i>
+                    </button>
+                    <input type="number" class="form-control text-center" formControlName="quantity" min="1" max="10">
+                    <button type="button" class="btn btn-outline-secondary" 
+                            (click)="increaseQuantity()"
+                            [disabled]="purchaseForm.get('quantity')?.value >= 10">
+                      <i class="bi bi-plus"></i>
+                    </button>
+                  </div>
+                </div>
+              </form>
+
+              <div class="purchase-buttons">
+                <button class="btn btn-primary btn-lg add-to-cart" (click)="addToCart()" [disabled]="product.stock <= 0">
+                  <i class="bi bi-cart-plus"></i> Add to Cart
+                </button>
+                <button class="btn btn-success btn-lg buy-now" (click)="buyNow()" [disabled]="product.stock <= 0">
+                  <i class="bi bi-lightning"></i> Buy Now
+                </button>
+              </div>
+            </div>
+
+            <!-- Product Features -->
+            <div class="product-features">
+              <div class="feature-item">
+                <i class="bi bi-truck"></i>
+                <span>Free Shipping</span>
+              </div>
+              <div class="feature-item">
+                <i class="bi bi-shield-check"></i>
+                <span>{{ product.specifications.warranty || 'Standard' }} Warranty</span>
+              </div>
+              <div class="feature-item">
+                <i class="bi bi-arrow-repeat"></i>
+                <span>30-Day Returns</span>
+              </div>
+              <div class="feature-item">
+                <i class="bi bi-headset"></i>
+                <span>24/7 Support</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Details Tabs -->
+    <div class="product-details-tabs">
+      <ul class="nav nav-tabs" id="productTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" [class.active]="activeTab === 'description'" (click)="setActiveTab('description')">
+            Description
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" [class.active]="activeTab === 'specifications'" (click)="setActiveTab('specifications')">
+            Specifications
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" [class.active]="activeTab === 'reviews'" (click)="setActiveTab('reviews')">
+            Reviews ({{ reviews.length }})
+          </button>
+        </li>
+      </ul>
+
+      <div class="tab-content">
+        <!-- Description Tab -->
+        <div class="tab-pane" [class.active]="activeTab === 'description'">
+          <div class="description-content">
+            <h3>Product Description</h3>
+            <p>{{ product.description }}</p>
+            
+            <h4>Key Features</h4>
+            <ul>
+              <li>Premium quality materials</li>
+              <li>Advanced technology integration</li>
+              <li>Professional grade performance</li>
+              <li>Easy to use and maintain</li>
+              <li>Stylish and modern design</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Specifications Tab -->
+        <div class="tab-pane" [class.active]="activeTab === 'specifications'">
+          <div class="specifications-content">
+            <h3>Product Specifications</h3>
+            <div class="specifications-grid">
+              <div class="spec-item" *ngFor="let spec of product.specifications | keyvalue">
+                <span class="spec-label">{{ spec.key }}:</span>
+                <span class="spec-value">{{ spec.value }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reviews Tab -->
+        <div class="tab-pane" [class.active]="activeTab === 'reviews'">
+          <div class="reviews-content">
+            <!-- Review Summary -->
+            <div class="review-summary">
+              <div class="rating-overview">
+                <div class="average-rating">
+                  <span class="rating-number">{{ getAverageRating() }}</span>
+                  <div class="stars">
+                    <i class="bi bi-star-fill" *ngFor="let star of getStars(getAverageRating())"></i>
+                    <i class="bi bi-star" *ngFor="let star of getStars(5 - getAverageRating())"></i>
+                  </div>
+                  <span class="total-reviews">{{ reviews.length }} Reviews</span>
+                </div>
+                <div class="rating-bars">
+                  <div class="rating-bar" *ngFor="let rating of [5,4,3,2,1]">
+                    <span class="rating-label">{{ rating }} stars</span>
+                    <div class="progress">
+                      <div class="progress-bar" [style.width.%]="getRatingPercentage(rating)"></div>
+                    </div>
+                    <span class="rating-count">{{ getRatingDistribution()[rating] }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Write Review -->
+            <div class="write-review" *ngIf="!userReview">
+              <button class="btn btn-primary" (click)="showReviewForm = !showReviewForm">
+                <i class="bi bi-pencil"></i> Write a Review
+              </button>
+              
+              <div class="review-form" *ngIf="showReviewForm">
+                <h4>Write Your Review</h4>
+                <form [formGroup]="reviewForm" (ngSubmit)="submitReview()">
+                  <div class="mb-3">
+                    <label class="form-label">Rating</label>
+                    <div class="rating-selector">
+                      <i class="bi bi-star" 
+                         *ngFor="let star of [1,2,3,4,5]; let i = index"
+                         [class]="reviewForm.get('rating')?.value > i ? 'bi-star-fill' : 'bi-star'"
+                         (click)="reviewForm.patchValue({rating: i + 1})"></i>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Your Review</label>
+                    <textarea class="form-control" 
+                              formControlName="comment" 
+                              rows="4" 
+                              placeholder="Share your experience with this product..."></textarea>
+                  </div>
+                  <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary" [disabled]="!reviewForm.valid">
+                      Submit Review
+                    </button>
+                    <button type="button" class="btn btn-secondary" (click)="showReviewForm = false">
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- Reviews List -->
+            <div class="reviews-list">
+              <div class="review-item" *ngFor="let review of reviews">
+                <div class="review-header">
+                  <div class="reviewer-info">
+                    <strong>{{ review.userName }}</strong>
+                    <div class="review-rating">
+                      <i class="bi bi-star-fill" *ngFor="let star of getStars(review.rating)"></i>
+                      <i class="bi bi-star" *ngFor="let star of getStars(5 - review.rating)"></i>
+                    </div>
+                  </div>
+                  <div class="review-date">{{ review.date | date:'mediumDate' }}</div>
+                </div>
+                <div class="review-comment">{{ review.comment }}</div>
+                <div class="review-actions">
+                  <button class="btn btn-sm btn-outline-primary" (click)="markHelpful(review.id)">
+                    <i class="bi bi-hand-thumbs-up"></i> Helpful ({{ review.helpful }})
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Review Section -->
+    <div class="review-section-wrapper" *ngIf="product">
+      <app-review-section [productId]="product.id" (reviewAdded)="onReviewAdded()"></app-review-section>
+    </div>
+
+    <!-- Related Products -->
+    <div class="related-products-section" *ngIf="relatedProducts.length > 0">
+      <h3 class="section-title">Related Products</h3>
+      <div class="related-products-grid">
+        <div class="related-product-card" *ngFor="let relatedProduct of relatedProducts" routerLink="/product/{{ relatedProduct.id }}">
+          <div class="related-product-image">
+            <img [src]="relatedProduct.images[0] || 'assets/images/placeholder.jpg'" [alt]="relatedProduct.name" />
+          </div>
+          <div class="related-product-info">
+            <h4>{{ relatedProduct.name }}</h4>
+            <div class="related-product-price">${{ relatedProduct.price }}</div>
+            <div class="related-product-rating">
+              <i class="bi bi-star-fill" *ngFor="let star of getStars(relatedProduct.rating || 0)"></i>
+              <i class="bi bi-star" *ngFor="let star of getStars(5 - (relatedProduct.rating || 0))"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

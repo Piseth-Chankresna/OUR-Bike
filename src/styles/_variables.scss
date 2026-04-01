@@ -1,0 +1,113 @@
+// =============================================
+// OUR-BIKES STORE - SCSS VARIABLES
+// =============================================
+
+// COLOR SCHEME
+:root {
+  // Dark Theme (Default)
+  --primary-bg: #1a1a2e;
+  --secondary-bg: #16213e;
+  --card-bg: rgba(255, 255, 255, 0.05);
+  --primary-color: #ff6b35;
+  --secondary-color: #f7931e;
+  --text-primary: #ffffff;
+  --text-secondary: #b4b4b4;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --danger-color: #dc3545;
+  --info-color: #17a2b8;
+  
+  // Light Theme
+  --light-primary-bg: #ffffff;
+  --light-secondary-bg: #f8f9fa;
+  --light-card-bg: #ffffff;
+  --light-primary-color: #ff6b35;
+  --light-secondary-color: #f7931e;
+  --light-text-primary: #212529;
+  --light-text-secondary: #6c757d;
+  --light-border-color: rgba(0, 0, 0, 0.125);
+}
+
+[data-theme="light"] {
+  --primary-bg: var(--light-primary-bg);
+  --secondary-bg: var(--light-secondary-bg);
+  --card-bg: var(--light-card-bg);
+  --text-primary: var(--light-text-primary);
+  --text-secondary: var(--light-text-secondary);
+  --border-color: var(--light-border-color);
+}
+
+// TYPOGRAPHY
+$font-family-heading: 'Poppins', sans-serif;
+$font-family-body: 'Inter', sans-serif;
+$font-family-accent: 'Montserrat', sans-serif;
+
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+$font-weight-black: 900;
+
+// FONT SIZES
+$font-size-xs: 0.75rem;    // 12px
+$font-size-sm: 0.875rem;   // 14px
+$font-size-base: 1rem;     // 16px
+$font-size-lg: 1.125rem;   // 18px
+$font-size-xl: 1.25rem;    // 20px
+$font-size-2xl: 1.5rem;    // 24px
+$font-size-3xl: 1.875rem;  // 30px
+$font-size-4xl: 2.25rem;   // 36px
+$font-size-5xl: 3rem;      // 48px
+
+// SPACING
+$spacing-xs: 0.25rem;   // 4px
+$spacing-sm: 0.5rem;    // 8px
+$spacing-md: 1rem;      // 16px
+$spacing-lg: 1.5rem;    // 24px
+$spacing-xl: 2rem;      // 32px
+$spacing-2xl: 3rem;     // 48px
+$spacing-3xl: 4rem;     // 64px
+
+// BORDER RADIUS
+$border-radius-sm: 0.5rem;   // 8px
+$border-radius-md: 0.75rem;  // 12px
+$border-radius-lg: 1rem;     // 16px
+$border-radius-xl: 1.5rem;   // 24px
+
+// COMPONENT SIZES
+$header-height: 70px;
+$footer-min-height: 200px;
+$product-card-width: 280px;
+$product-card-height: 350px;
+$button-height: 45px;
+$input-height: 45px;
+
+// BOX SHADOWS
+$box-shadow-card: 0 8px 32px rgba(0, 0, 0, 0.2);
+$box-shadow-hover: 0 12px 48px rgba(255, 107, 53, 0.3);
+$box-shadow-small: 0 2px 8px rgba(0, 0, 0, 0.1);
+$box-shadow-large: 0 16px 64px rgba(0, 0, 0, 0.3);
+
+// TRANSITIONS
+$transition-fast: 0.15s ease;
+$transition-base: 0.3s ease;
+$transition-slow: 0.5s ease;
+$transition-cubic: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+// BREAKPOINTS
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+$breakpoint-2xl: 1400px;
+
+// Z-INDEX
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;

@@ -1,0 +1,594 @@
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
+import { delay, map, catchError } from 'rxjs/operators';
+import { AuthService } from './auth.service';
+import { StorageService } from './storage.service';
+
+export interface SocialAuthUser {
+  id: string;
+  email: string;
+  name: string;
+  firstName: string;
+  lastName: string;
+  avatar?: string;
+  provider: 'google' | 'facebook';
+  verified: boolean;
+  metadata: SocialAuthMetadata;
+}
+
+export interface SocialAuthMetadata {
+  accessToken?: string;
+  refreshToken?: string;
+  expiresAt?: number;
+  idToken?: string;
+  scopes?: string[];
+  providerData?: any;
+}
+
+export interface SocialAuthConfig {
+  google: {
+    clientId: string;
+    scope: string[];
+    redirectUri: string;
+  };
+  facebook: {
+    appId: string;
+    version: string;
+    scope: string[];
+    redirectUri: string;
+  };
+}
+
+export interface SocialAuthState {
+  provider: 'google' | 'facebook';
+  state: string;
+  timestamp: number;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class SocialAuthService {
+  private readonly STORAGE_KEY = 'our_bikes_social_auth_state';
+  private readonly LINKED_ACCOUNTS_KEY = 'our_bikes_linked_accounts';
+  
+  private authState$ = new BehaviorSubject<SocialAuthState | null>(null);
+  private isLoading$ = new BehaviorSubject<boolean>(false);
+  private linkedAccounts$ = new BehaviorSubject<SocialAuthUser[]>([]);
+  
+  // Mock configuration (in production, these would be environment variables)
+  private readonly config: SocialAuthConfig = {
+    google: {
+      clientId: 'your-google-client-id.apps.googleusercontent.com',
+      scope: ['openid', 'email', 'profile'],
+      redirectUri: `${window.location.origin}/auth/google/callback`
+    },
+    facebook: {
+      appId: 'your-facebook-app-id',
+      version: 'v18.0',
+      scope: ['email', 'public_profile'],
+      redirectUri: `${window.location.origin}/auth/facebook/callback`
+    }
+  };
+
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private authService: AuthService,
+    private storageService: StorageService
+  ) {
+    this.loadLinkedAccounts();
+  }
+
+  // Get auth state as observable
+  getAuthState(): Observable<SocialAuthState | null> {
+    return this.authState$.asObservable();
+  }
+
+  // Get loading state as observable
+  getIsLoading(): Observable<boolean> {
+    return this.isLoading$.asObservable();
+  }
+
+  // Get linked accounts as observable
+  getLinkedAccounts(): Observable<SocialAuthUser[]> {
+    return this.linkedAccounts$.asObservable();
+  }
+
+  // Initiate Google OAuth flow
+  signInWithGoogle(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    this.isLoading$.next(true);
+    
+    try {
+      const state = this.generateState();
+      const authUrl = this.buildGoogleAuthUrl(state);
+      
+      // Store state for verification
+      this.storeAuthState('google', state);
+      
+      // Redirect to Google OAuth
+      window.location.href = authUrl;
+    } catch (error) {
+      console.error('Error initiating Google sign-in:', error);
+      this.isLoading$.next(false);
+    }
+  }
+
+  // Initiate Facebook OAuth flow
+  signInWithFacebook(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    this.isLoading$.next(true);
+    
+    try {
+      const state = this.generateState();
+      const authUrl = this.buildFacebookAuthUrl(state);
+      
+      // Store state for verification
+      this.storeAuthState('facebook', state);
+      
+      // Redirect to Facebook OAuth
+      window.location.href = authUrl;
+    } catch (error) {
+      console.error('Error initiating Facebook sign-in:', error);
+      this.isLoading$.next(false);
+    }
+  }
+
+  // Handle OAuth callback
+  handleAuthCallback(provider: 'google' | 'facebook', code: string, state: string): Observable<SocialAuthUser> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return throwError(() => new Error('Platform not supported'));
+    }
+
+    this.isLoading$.next(true);
+
+    // Verify state
+    const storedState = this.getStoredAuthState(provider);
+    if (!storedState || storedState.state !== state) {
+      this.isLoading$.next(false);
+      return throwError(() => new Error('Invalid state parameter'));
+    }
+
+    // Exchange code for tokens and get user info
+    return this.exchangeCodeForTokens(provider, code).pipe(
+      map(userProfile => {
+        // Create or link user account
+        return this.processSocialAuth(provider, userProfile);
+      }),
+      catchError(error => {
+        console.error('Error processing social auth:', error);
+        this.isLoading$.next(false);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  // Link social account to existing user
+  linkSocialAccount(provider: 'google' | 'facebook'): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const currentUser = this.authService.getCurrentUserValue();
+    if (!currentUser) {
+      return;
+    }
+
+    this.isLoading$.next(true);
+    
+    try {
+      const state = this.generateState();
+      const authUrl = this.buildGoogleAuthUrl(state); // Would build appropriate URL
+      
+      // Store linking state
+      this.storeAuthState(provider, state, { linking: true, userId: currentUser.userId });
+      
+      window.location.href = authUrl;
+    } catch (error) {
+      console.error('Error linking social account:', error);
+      this.isLoading$.next(false);
+    }
+  }
+
+  // Unlink social account
+  unlinkSocialAccount(provider: 'google' | 'facebook'): boolean {
+    try {
+      const linkedAccounts = this.getLinkedAccounts();
+      const filtered = linkedAccounts.filter(account => account.provider !== provider);
+      
+      if (filtered.length === linkedAccounts.length) {
+        return false; // Account not found
+      }
+
+      this.storageService.set(this.LINKED_ACCOUNTS_KEY, filtered);
+      this.linkedAccounts$.next(filtered);
+      return true;
+    } catch (error) {
+      console.error('Error unlinking social account:', error);
+      return false;
+    }
+  }
+
+  // Check if provider is linked
+  isProviderLinked(provider: 'google' | 'facebook'): boolean {
+    const linkedAccounts = this.getLinkedAccounts();
+    return linkedAccounts.some(account => account.provider === provider);
+  }
+
+  // Get linked accounts
+  private getLinkedAccounts(): SocialAuthUser[] {
+    try {
+      const accounts = this.storageService.get(this.LINKED_ACCOUNTS_KEY) as SocialAuthUser[] || [];
+      this.linkedAccounts$.next(accounts);
+      return accounts;
+    } catch (error) {
+      console.error('Error getting linked accounts:', error);
+      return [];
+    }
+  }
+
+  // Load linked accounts
+  private loadLinkedAccounts(): void {
+    this.getLinkedAccounts();
+  }
+
+  // Build Google OAuth URL
+  private buildGoogleAuthUrl(state: string): string {
+    const params = new URLSearchParams({
+      client_id: this.config.google.clientId,
+      redirect_uri: this.config.google.redirectUri,
+      response_type: 'code',
+      scope: this.config.google.scope.join(' '),
+      state: state,
+      access_type: 'offline',
+      prompt: 'consent'
+    });
+
+    return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+  }
+
+  // Build Facebook OAuth URL
+  private buildFacebookAuthUrl(state: string): string {
+    const params = new URLSearchParams({
+      client_id: this.config.facebook.appId,
+      redirect_uri: this.config.facebook.redirectUri,
+      response_type: 'code',
+      scope: this.config.facebook.scope.join(' '),
+      state: state
+    });
+
+    return `https://www.facebook.com/${this.config.facebook.version}/dialog/oauth?${params.toString()}`;
+  }
+
+  // Generate secure state
+  private generateState(): string {
+    return Math.random().toString(36).substring(2, 15) + 
+           Math.random().toString(36).substring(2, 15);
+  }
+
+  // Store auth state
+  private storeAuthState(provider: 'google' | 'facebook', state: string, metadata?: any): void {
+    const authState: SocialAuthState = {
+      provider,
+      state,
+      timestamp: Date.now(),
+      ...metadata
+    };
+
+    this.storageService.set(`${this.STORAGE_KEY}_${provider}`, authState);
+    this.authState$.next(authState);
+  }
+
+  // Get stored auth state
+  private getStoredAuthState(provider: 'google' | 'facebook'): SocialAuthState | null {
+    try {
+      return this.storageService.get(`${this.STORAGE_KEY}_${provider}`) as SocialAuthState || null;
+    } catch (error) {
+      console.error('Error getting stored auth state:', error);
+      return null;
+    }
+  }
+
+  // Exchange authorization code for tokens (mock implementation)
+  private exchangeCodeForTokens(provider: 'google' | 'facebook', code: string): Observable<any> {
+    // In a real implementation, this would make an HTTP request to your backend
+    // For demo purposes, we'll simulate the response
+    
+    return of(this.getMockUserProfile(provider)).pipe(
+      delay(1500) // Simulate network delay
+    );
+  }
+
+  // Get mock user profile (for demo purposes)
+  private getMockUserProfile(provider: 'google' | 'facebook'): any {
+    if (provider === 'google') {
+      return {
+        id: 'google_123456789',
+        email: 'user@gmail.com',
+        name: 'John Doe',
+        firstName: 'John',
+        lastName: 'Doe',
+        avatar: 'https://lh3.googleusercontent.com/a/default-user',
+        verified: true,
+        metadata: {
+          accessToken: 'mock_access_token',
+          refreshToken: 'mock_refresh_token',
+          expiresAt: Date.now() + 3600000, // 1 hour
+          idToken: 'mock_id_token',
+          scopes: ['openid', 'email', 'profile']
+        }
+      };
+    } else {
+      return {
+        id: 'facebook_987654321',
+        email: 'user@facebook.com',
+        name: 'Jane Smith',
+        firstName: 'Jane',
+        lastName: 'Smith',
+        avatar: 'https://graph.facebook.com/default-user/picture',
+        verified: true,
+        metadata: {
+          accessToken: 'mock_fb_access_token',
+          expiresAt: Date.now() + 3600000, // 1 hour
+          scopes: ['email', 'public_profile']
+        }
+      };
+    }
+  }
+
+  // Process social authentication
+  private processSocialAuth(provider: 'google' | 'facebook', userProfile: any): SocialAuthUser {
+    const socialUser: SocialAuthUser = {
+      ...userProfile,
+      provider
+    };
+
+    // Check if user exists with this email
+    const existingUser = this.findUserByEmail(socialUser.email);
+    
+    if (existingUser) {
+      // Link social account to existing user
+      this.linkToExistingUser(existingUser, socialUser);
+    } else {
+      // Create new user account
+      this.createNewUser(socialUser);
+    }
+
+    // Add to linked accounts
+    this.addLinkedAccount(socialUser);
+
+    // Complete authentication
+    this.completeAuthentication(socialUser);
+
+    return socialUser;
+  }
+
+  // Find user by email
+  private findUserByEmail(email: string): any {
+    try {
+      const users = this.storageService.getUsers();
+      return users.find(user => user.email === email) || null;
+    } catch (error) {
+      console.error('Error finding user by email:', error);
+      return null;
+    }
+  }
+
+  // Link to existing user
+  private linkToExistingUser(user: any, socialUser: SocialAuthUser): void {
+    try {
+      const users = this.storageService.getUsers();
+      const userIndex = users.findIndex(u => u.userId === user.userId);
+      
+      if (userIndex >= 0) {
+        users[userIndex].socialAuth = users[userIndex].socialAuth || {};
+        users[userIndex].socialAuth[socialUser.provider] = socialUser.metadata;
+        users[userIndex].lastLogin = Date.now();
+        
+        this.storageService.set(this.storageService.KEYS.USERS, users);
+      }
+    } catch (error) {
+      console.error('Error linking to existing user:', error);
+    }
+  }
+
+  // Create new user
+  private createNewUser(socialUser: SocialAuthUser): void {
+    try {
+      const newUser = {
+        userId: `user_${Date.now()}`,
+        email: socialUser.email,
+        name: socialUser.name,
+        firstName: socialUser.firstName,
+        lastName: socialUser.lastName,
+        password: '', // No password for social auth users
+        role: 'user',
+        createdAt: Date.now(),
+        lastLogin: Date.now(),
+        profile: {
+          avatar: socialUser.avatar,
+          phone: '',
+          address: '',
+          city: '',
+          state: '',
+          zipCode: '',
+          country: '',
+          dateOfBirth: '',
+          gender: '',
+          bio: ''
+        },
+        socialAuth: {
+          [socialUser.provider]: socialUser.metadata
+        }
+      };
+
+      const users = this.storageService.getUsers();
+      users.push(newUser);
+      this.storageService.set(this.storageService.KEYS.USERS, users);
+    } catch (error) {
+      console.error('Error creating new user:', error);
+    }
+  }
+
+  // Add to linked accounts
+  private addLinkedAccount(socialUser: SocialAuthUser): void {
+    try {
+      const linkedAccounts = this.getLinkedAccounts();
+      const filtered = linkedAccounts.filter(account => account.provider !== socialUser.provider);
+      filtered.push(socialUser);
+      
+      this.storageService.set(this.LINKED_ACCOUNTS_KEY, filtered);
+      this.linkedAccounts$.next(filtered);
+    } catch (error) {
+      console.error('Error adding linked account:', error);
+    }
+  }
+
+  // Complete authentication
+  private completeAuthentication(socialUser: SocialAuthUser): void {
+    try {
+      const user = this.findUserByEmail(socialUser.email);
+      if (user) {
+        // Create session
+        const session = {
+          userId: user.userId,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          loginTime: Date.now(),
+          expiresAt: Date.now() + (24 * 60 * 60 * 1000), // 24 hours
+          socialProvider: socialUser.provider
+        };
+
+        this.storageService.set(this.storageService.KEYS.CURRENT_SESSION, session);
+        this.authService.updateAuthState(session);
+      }
+    } catch (error) {
+      console.error('Error completing authentication:', error);
+    } finally {
+      this.isLoading$.next(false);
+      this.clearAuthState(socialUser.provider);
+    }
+  }
+
+  // Clear auth state
+  private clearAuthState(provider: 'google' | 'facebook'): void {
+    this.storageService.remove(`${this.STORAGE_KEY}_${provider}`);
+    this.authState$.next(null);
+  }
+
+  // Get provider display name
+  getProviderDisplayName(provider: 'google' | 'facebook'): string {
+    const names = {
+      google: 'Google',
+      facebook: 'Facebook'
+    };
+    return names[provider];
+  }
+
+  // Get provider icon
+  getProviderIcon(provider: 'google' | 'facebook'): string {
+    const icons = {
+      google: 'bi-google',
+      facebook: 'bi-facebook'
+    };
+    return icons[provider];
+  }
+
+  // Get provider color
+  getProviderColor(provider: 'google' | 'facebook'): string {
+    const colors = {
+      google: '#4285f4',
+      facebook: '#1877f2'
+    };
+    return colors[provider];
+  }
+
+  // Check if social auth is available
+  isSocialAuthAvailable(): boolean {
+    return isPlatformBrowser(this.platformId);
+  }
+
+  // Sign out from specific provider
+  signOutFromProvider(provider: 'google' | 'facebook'): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    try {
+      // Clear provider-specific tokens
+      const user = this.authService.getCurrentUserValue();
+      if (user && user.socialAuth && user.socialAuth[provider]) {
+        delete user.socialAuth[provider];
+        
+        // Update user in storage
+        const users = this.storageService.getUsers();
+        const userIndex = users.findIndex(u => u.userId === user.userId);
+        if (userIndex >= 0) {
+          users[userIndex] = user;
+          this.storageService.set(this.storageService.KEYS.USERS, users);
+        }
+      }
+
+      // Remove from linked accounts
+      this.unlinkSocialAccount(provider);
+    } catch (error) {
+      console.error('Error signing out from provider:', error);
+    }
+  }
+
+  // Get social auth statistics
+  getSocialAuthStats(): {
+    totalLinked: number;
+    providers: { [key: string]: boolean };
+    lastLogin?: string;
+  } {
+    const linkedAccounts = this.getLinkedAccounts();
+    const currentUser = this.authService.getCurrentUserValue();
+    
+    return {
+      totalLinked: linkedAccounts.length,
+      providers: {
+        google: this.isProviderLinked('google'),
+        facebook: this.isProviderLinked('facebook')
+      },
+      lastLogin: currentUser?.socialProvider
+    };
+  }
+
+  // Cleanup expired tokens
+  cleanupExpiredTokens(): number {
+    try {
+      const users = this.storageService.getUsers();
+      let cleanedCount = 0;
+      
+      users.forEach(user => {
+        if (user.socialAuth) {
+          Object.keys(user.socialAuth).forEach(provider => {
+            const authData = user.socialAuth[provider as keyof typeof user.socialAuth];
+            if (authData && authData.expiresAt && authData.expiresAt < Date.now()) {
+              delete user.socialAuth[provider as keyof typeof user.socialAuth];
+              cleanedCount++;
+            }
+          });
+        }
+      });
+
+      if (cleanedCount > 0) {
+        this.storageService.set(this.storageService.KEYS.USERS, users);
+      }
+
+      return cleanedCount;
+    } catch (error) {
+      console.error('Error cleaning up expired tokens:', error);
+      return 0;
+    }
+  }
+}

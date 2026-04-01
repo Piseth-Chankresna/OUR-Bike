@@ -1,0 +1,16 @@
+<!-- OUR-Bikes Store Application -->
+<div class="app-container">
+  <!-- Regular Header Component (hidden for admin routes) -->
+  <app-header *ngIf="!isAdminRoute()"></app-header>
+  
+  <!-- Admin Header Component (shown only for admin routes) -->
+  <app-admin-header *ngIf="isAdminRoute()"></app-admin-header>
+  
+  <!-- Main Content Area -->
+  <main class="main-content" [class.admin-content]="isAdminRoute()">
+    <router-outlet></router-outlet>
+  </main>
+  
+  <!-- Footer Component (hidden for admin routes) -->
+  <app-footer *ngIf="!isAdminRoute()"></app-footer>
+</div>

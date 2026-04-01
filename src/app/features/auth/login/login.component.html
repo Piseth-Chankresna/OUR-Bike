@@ -1,0 +1,153 @@
+<div class="login-container">
+  <div class="login-card glass-effect">
+    <!-- Logo and Title -->
+    <div class="text-center mb-4">
+      <div class="logo mb-3">
+        <i class="bi bi-motorcycle"></i>
+      </div>
+      <h1 class="heading-2">Welcome Back</h1>
+      <p class="text-secondary">Sign in to your OUR-Bikes account</p>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="alert alert-danger fade-in" role="alert">
+      <i class="bi bi-exclamation-triangle me-2"></i>
+      {{ errorMessage }}
+    </div>
+
+    <!-- Login Form -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <!-- Email Field -->
+      <div class="form-group mb-3">
+        <label for="email" class="form-label">
+          <i class="bi bi-envelope me-2"></i>Email Address
+        </label>
+        <input
+          type="email"
+          id="email"
+          class="form-control input-custom"
+          formControlName="email"
+          placeholder="Enter your email"
+          [class.is-invalid]="email?.invalid && email?.touched"
+          autocomplete="email"
+        >
+        <div *ngIf="email?.invalid && email?.touched" class="invalid-feedback">
+          {{ getEmailErrorMessage() }}
+        </div>
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group mb-3">
+        <label for="password" class="form-label">
+          <i class="bi bi-lock me-2"></i>Password
+        </label>
+        <div class="password-input-wrapper">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            id="password"
+            class="form-control input-custom"
+            formControlName="password"
+            placeholder="Enter your password"
+            [class.is-invalid]="password?.invalid && password?.touched"
+            autocomplete="current-password"
+          >
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="togglePasswordVisibility()"
+            tabindex="-1"
+          >
+            <i [class]="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+          </button>
+        </div>
+        <div *ngIf="password?.invalid && password?.touched" class="invalid-feedback">
+          {{ getPasswordErrorMessage() }}
+        </div>
+      </div>
+
+      <!-- Remember Me & Forgot Password -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="form-check">
+          <input type="checkbox" id="remember" class="form-check-input">
+          <label for="remember" class="form-check-label text-secondary">
+            Remember me
+          </label>
+        </div>
+        <a href="#" class="text-primary text-decoration-none">
+          Forgot password?
+        </a>
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        class="btn btn-primary-custom w-100 mb-3"
+        [disabled]="loginForm.invalid || isLoading"
+      >
+        <span *ngIf="!isLoading">
+          <i class="bi bi-box-arrow-in-right me-2"></i>
+          Sign In
+        </span>
+        <span *ngIf="isLoading">
+          <span class="spinner spinner-border spinner-border-sm me-2" role="status"></span>
+          Signing in...
+        </span>
+      </button>
+
+      <!-- Divider -->
+      <div class="text-center mb-3">
+        <span class="text-secondary">OR</span>
+      </div>
+
+      <!-- Social Login (Optional) -->
+      <div class="social-login mb-4">
+        <button type="button" class="btn btn-outline-custom w-100 mb-2">
+          <i class="bi bi-google me-2"></i>
+          Continue with Google
+        </button>
+        <button type="button" class="btn btn-outline-custom w-100">
+          <i class="bi bi-facebook me-2"></i>
+          Continue with Facebook
+        </button>
+      </div>
+    </form>
+
+    <!-- Register Link -->
+    <div class="text-center">
+      <p class="text-secondary mb-0">
+        Don't have an account?
+        <a 
+          routerLink="/auth/register" 
+          class="text-primary text-decoration-none fw-medium"
+        >
+          Sign up here
+        </a>
+      </p>
+    </div>
+
+    <!-- Demo Accounts Info -->
+    <div class="demo-accounts mt-4 p-3 glass-effect">
+      <h6 class="text-primary mb-2">
+        <i class="bi bi-info-circle me-2"></i>Demo Accounts
+      </h6>
+      <div class="small text-secondary">
+        <div class="mb-2">
+          <strong>🔑 Admin Access:</strong><br>
+          Email: admin@ourbikes.com<br>
+          Password: Admin@123
+        </div>
+        <div class="mb-2">
+          <strong>👤 User Accounts:</strong><br>
+          john.doe@example.com / Password123<br>
+          jane.smith@example.com / Password123<br>
+          mike.wilson@example.com / Password123<br>
+          sarah.johnson@example.com / Password123
+        </div>
+        <div class="text-muted">
+          <small>All user accounts use the same password: <strong>Password123</strong></small>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</div>

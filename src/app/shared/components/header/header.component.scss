@@ -1,0 +1,389 @@
+// Variables & Design System
+$primary: #00d2ff;
+$secondary: #3a7bd5;
+$accent-gradient: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+$glass-bg: rgba(15, 23, 42, 0.85);
+$glass-border: rgba(255, 255, 255, 0.1);
+$transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+.main-header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 90px;
+  z-index: 1000;
+  transition: $transition;
+  display: flex;
+  align-items: center;
+  background: transparent;
+
+  &.scrolled {
+    height: 70px;
+    background: $glass-bg;
+    backdrop-filter: blur(15px) saturate(160%);
+    border-bottom: 1px solid $glass-border;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.header-container {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+// Logo Styling
+.navbar-brand {
+  .logo-link {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    text-decoration: none;
+    transition: $transition;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+
+    .brand-logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #ffd700, #ffed4e);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px rgba(255, 215, 0, 0.3);
+      transition: $transition;
+
+      i {
+        font-size: 1.5rem;
+        color: #1a1a1a;
+        font-weight: bold;
+      }
+
+      &:hover {
+        transform: scale(1.05);
+        box-shadow: 0 12px 32px rgba(255, 215, 0, 0.4);
+      }
+    }
+
+    .brand-content {
+      .logo-text {
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin: 0 0 2px 0;
+        color: #ffffff;
+        letter-spacing: -0.5px;
+        background: linear-gradient(135deg, #ffffff, #ffd700);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .logo-tagline {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.7);
+        margin: 0;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+      }
+    }
+  }
+}
+
+// Navigation Styles
+
+// Search
+.navbar-search {
+  flex: 1;
+  max-width: 400px;
+  margin: 0 2rem;
+}
+
+// Navigation Links
+.nav-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+// Custom Dropdown Styles
+.dropdown {
+  position: relative;
+  
+  .dropdown-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px !important;
+    color: #fff !important;
+    font-weight: 600;
+    border-radius: 12px;
+    transition: $transition;
+    border: 1px solid transparent;
+    cursor: pointer;
+    background: transparent;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: $glass-border;
+      transform: translateY(-2px);
+    }
+
+    .dropdown-arrow {
+      transition: transform 0.3s ease;
+    }
+    
+    &.active .dropdown-arrow {
+      transform: rotate(180deg);
+    }
+  }
+
+  .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: $glass-bg;
+    border: 1px solid $glass-border;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(15px) saturate(160%);
+    min-width: 200px;
+    padding: 8px 0;
+    margin-top: 8px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+
+    &.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .dropdown-header {
+      padding: 8px 16px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 4px;
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      color: #fff !important;
+      text-decoration: none;
+      transition: $transition;
+      border-radius: 8px;
+      margin: 2px 8px;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateX(4px);
+      }
+
+      i {
+        font-size: 1.1rem;
+        width: 20px;
+        text-align: center;
+      }
+
+      &.router-link-active {
+        background: rgba(0, 210, 255, 0.2);
+        border-left: 3px solid $primary;
+      }
+    }
+
+    .dropdown-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 4px 0;
+    }
+  }
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px !important;
+  color: #fff !important;
+  font-weight: 600;
+  border-radius: 12px;
+  transition: $transition;
+  border: 1px solid transparent;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: $glass-border;
+    transform: translateY(-2px);
+  }
+
+  &.btn-primary-custom {
+    background: $accent-gradient;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
+    &:hover { box-shadow: 0 8px 25px rgba(0, 210, 255, 0.5); }
+  }
+
+  &.btn-outline-custom {
+    border: 1px solid $primary;
+    color: $primary !important;
+  }
+}
+
+// Badges
+.notification-badge {
+  background: #ff4757 !important;
+  font-size: 0.65rem;
+  padding: 4px 7px;
+  border-radius: 50px;
+  transform: translateY(-8px);
+}
+
+// Mobile Menu Styling
+.mobile-menu {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+  opacity: 0;
+  visibility: hidden;
+  transition: $transition;
+
+  &.show {
+    opacity: 1;
+    visibility: visible;
+    .mobile-menu-content { transform: translateX(0); }
+  }
+
+  .mobile-menu-content {
+    position: absolute;
+    right: 0;
+    width: 320px;
+    height: 100%;
+    background: $glass-bg;
+    padding: 2rem;
+    transform: translateX(100%);
+    transition: $transition;
+    border-left: 1px solid $glass-border;
+  }
+}
+
+// Responsive Fit-Cover
+@media (max-width: 991px) {
+  .navbar-search { display: none; }
+}
+
+// Modern Auth Button Styling
+.modern-auth-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 50px;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  min-width: 140px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.6s;
+  }
+
+  &:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+
+    &::before {
+      left: 100%;
+    }
+
+    .btn-arrow {
+      transform: translateX(3px);
+    }
+
+    .btn-icon {
+      transform: rotate(-10deg) scale(1.1);
+    }
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
+  }
+
+  .btn-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    position: relative;
+    z-index: 1;
+  }
+
+  .btn-icon {
+    font-size: 1.1rem;
+    transition: transform 0.3s ease;
+    color: #ffd700;
+  }
+
+  .btn-text {
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-arrow {
+    font-size: 0.9rem;
+    transition: transform 0.3s ease;
+    opacity: 0.8;
+  }
+}
+
+// Mobile Responsive for Modern Button
+@media (max-width: 768px) {
+  .modern-auth-btn {
+    min-width: 120px;
+    
+    .btn-content {
+      padding: 10px 16px;
+      font-size: 0.85rem;
+      gap: 6px;
+    }
+
+    .btn-icon {
+      font-size: 1rem;
+    }
+  }
+}

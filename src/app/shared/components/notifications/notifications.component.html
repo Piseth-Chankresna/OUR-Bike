@@ -1,0 +1,111 @@
+<div class="notifications-container">
+  <!-- Notification Bell -->
+  <button class="notification-bell" (click)="toggleDropdown()" [class.active]="isDropdownOpen">
+    <i class="bi bi-bell"></i>
+    <span class="notification-badge" *ngIf="hasUnreadNotifications()">
+      {{ getNotificationCountDisplay() }}
+    </span>
+  </button>
+
+  <!-- Notifications Dropdown -->
+  <div class="notifications-dropdown" *ngIf="isDropdownOpen" [class.empty]="!hasNotifications()">
+    <!-- Header -->
+    <div class="notifications-header">
+      <div class="header-title">
+        <h6>Notifications</h6>
+        <span class="unread-count" *ngIf="hasUnreadNotifications()">
+          {{ unreadCount }} unread
+        </span>
+      </div>
+      <div class="header-actions">
+        <button 
+          type="button" 
+          class="mark-all-read" 
+          (click)="markAllAsRead()"
+          *ngIf="hasUnreadNotifications()"
+          title="Mark all as read"
+        >
+          <i class="bi bi-check-double"></i>
+        </button>
+        <button 
+          type="button" 
+          class="clear-all" 
+          (click)="clearAllNotifications()"
+          *ngIf="hasNotifications()"
+          title="Clear all"
+        >
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="notifications-loading" *ngIf="isLoading">
+      <div class="spinner-border spinner-border-sm text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <span>Loading notifications...</span>
+    </div>
+
+    <!-- Notifications List -->
+    <div class="notifications-list" *ngIf="!isLoading && hasNotifications()">
+      <div 
+        class="notification-item" 
+        *ngFor="let notification of notifications"
+        [class.unread]="isUnread(notification)"
+        (click)="onNotificationClick(notification)"
+      >
+        <div class="notification-icon" [style.color]="getNotificationColor(notification.type)">
+          <i [class]="getNotificationIcon(notification.type)"></i>
+        </div>
+        <div class="notification-content">
+          <div class="notification-header">
+            <span class="notification-title">{{ notification.title }}</span>
+            <span class="notification-priority" [style.background-color]="getPriorityColor(notification.priority)">
+              {{ notification.priority }}
+            </span>
+          </div>
+          <div class="notification-message">{{ notification.message }}</div>
+          <div class="notification-footer">
+            <span class="notification-time">{{ formatTimestamp(notification.createdAt) }}</span>
+            <button 
+              type="button" 
+              class="notification-action"
+              *ngIf="notification.actionText && notification.actionUrl"
+              (click)="$event.stopPropagation(); onNotificationClick(notification)"
+            >
+              {{ notification.actionText }}
+            </button>
+          </div>
+        </div>
+        <button 
+          type="button" 
+          class="notification-delete"
+          (click)="deleteNotification(notification.id, $event)"
+          title="Delete notification"
+        >
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="notifications-empty" *ngIf="!isLoading && !hasNotifications()">
+      <div class="empty-icon">
+        <i class="bi bi-bell-slash"></i>
+      </div>
+      <div class="empty-text">
+        <h6>No notifications</h6>
+        <p>You're all caught up! Check back later for updates.</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="notifications-footer" *ngIf="!isLoading">
+      <button type="button" class="settings-button" (click)="goToSettings()">
+        <i class="bi bi-gear"></i>
+        <span>Notification Settings</span>
+      </button>
+    </div>
+  </div>
+</div>

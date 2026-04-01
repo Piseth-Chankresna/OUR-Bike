@@ -1,0 +1,70 @@
+<div class="social-login">
+  <div class="social-login-header">
+    <h6>Social Login</h6>
+    <p class="text-muted">Sign in with your social media account</p>
+  </div>
+
+  <!-- Social Login Buttons -->
+  @if (!isLoggedIn) {
+  <div class="social-login-buttons">
+    <div class="social-buttons-grid">
+      @for (provider of providers; track provider.id) {
+      <button
+        type="button"
+        class="btn social-btn"
+        [class]="'btn-outline-' + provider.id"
+        [disabled]="isLoading"
+        (click)="signInWithProvider(provider.id)"
+      >
+        <i class="bi" [class]="provider.icon"></i>
+        <span>Continue with {{ provider.name }}</span>
+      </button>
+      }
+    </div>
+    
+    @if (isLoading) {
+    <div class="loading-spinner">
+      <div class="spinner-border spinner-border-sm" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <span class="ms-2">Signing in...</span>
+    </div>
+    }
+  </div>
+  }
+
+  <!-- Connected Accounts (for logged-in users) -->
+  @if (isLoggedIn) {
+  <div class="connected-accounts">
+    <h6>Connected Accounts</h6>
+    
+    <div class="accounts-list">
+      @for (provider of providers; track provider.id) {
+      <div 
+        class="account-item"
+        [class.connected]="isProviderLinked(provider.id)"
+      >
+        <div class="account-info">
+          <i class="bi" [class]="provider.icon" [style.color]="provider.color"></i>
+          <span>{{ provider.name }}</span>
+        </div>
+        
+        <div class="account-actions">
+          <span 
+            class="status-badge"
+            [class.connected]="isProviderLinked(provider.id)"
+            [class.disconnected]="!isProviderLinked(provider.id)"
+          >
+            @if (isProviderLinked(provider.id)) {
+            Connected
+            } @else {
+            Disconnected
+            }
+          </span>
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+  }
+</div>

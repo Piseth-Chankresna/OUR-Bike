@@ -1,0 +1,230 @@
+<div class="theme-settings">
+  <div class="settings-header">
+    <h5>Theme Settings</h5>
+    <p>Customize your visual experience</p>
+  </div>
+
+  <!-- Theme Preview -->
+  <div class="theme-preview" [style]="getThemePreview()">
+    <div class="preview-content">
+      <div class="preview-header">
+        <h6>OUR-Bikes</h6>
+        <div class="preview-buttons">
+          <button class="preview-btn" [style.background]="getThemePreview().primary">Primary</button>
+          <button class="preview-btn" [style.background]="getThemePreview().accent">Accent</button>
+        </div>
+      </div>
+      <div class="preview-body">
+        <p>Preview of your theme settings</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theme Mode -->
+  <div class="settings-section">
+    <h6>Theme Mode</h6>
+    <div class="mode-selector">
+      @for (mode of ['light', 'dark', 'auto']; track mode) {
+      <div class="mode-option">
+        <input 
+          type="radio" 
+          [id]="'mode-' + mode" 
+          name="themeMode" 
+          [value]="mode"
+          [formControlName]="'mode'"
+        >
+        <label [for]="'mode-' + mode" class="mode-label">
+          <i class="bi" [class]="getModeIcon(mode)"></i>
+          <span>{{ mode.charAt(0).toUpperCase() + mode.slice(1) }}</span>
+        </label>
+      </div>
+      }
+    </div>
+    <p class="mode-description">
+      {{ getModeDescription(themeForm.get('mode')?.value) }}
+    </p>
+  </div>
+
+  <!-- Color Settings -->
+  <div class="settings-section">
+    <h6>Colors</h6>
+    <div class="color-controls">
+      <div class="color-control">
+        <label for="primaryColor">Primary Color</label>
+        <div class="color-input-group">
+          <input 
+            type="color" 
+            id="primaryColor" 
+            [value]="themeForm.get('primaryColor')?.value"
+            (input)="onColorChange('primary', $event)"
+            class="color-input"
+          >
+          <input 
+            type="text" 
+            [value]="themeForm.get('primaryColor')?.value"
+            (input)="themeForm.get('primaryColor')?.setValue($any($event.target).value)"
+            class="color-text"
+            placeholder="#00d2ff"
+          >
+        </div>
+      </div>
+      
+      <div class="color-control">
+        <label for="accentColor">Accent Color</label>
+        <div class="color-input-group">
+          <input 
+            type="color" 
+            id="accentColor" 
+            [value]="themeForm.get('accentColor')?.value"
+            (input)="onColorChange('accent', $event)"
+            class="color-input"
+          >
+          <input 
+            type="text" 
+            [value]="themeForm.get('accentColor')?.value"
+            (input)="themeForm.get('accentColor')?.setValue($any($event.target).value)"
+            class="color-text"
+            placeholder="#3a7bd5"
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theme Presets -->
+  <div class="settings-section">
+    <h6>Preset Themes</h6>
+    <div class="presets-grid">
+      <div 
+        *ngFor="let preset of presets" 
+        class="preset-card"
+        [class.active]="isPresetActive(preset)"
+        (click)="applyPreset(preset)"
+      >
+        <div class="preset-preview" [style.background]="getPresetColors(preset)"></div>
+        <div class="preset-info">
+          <h6>{{ preset.name }}</h6>
+          <p>{{ preset.description }}</p>
+        </div>
+        <div class="preset-indicator" *ngIf="isPresetActive(preset)">
+          <i class="bi bi-check-circle"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Typography Settings -->
+  <div class="settings-section">
+    <h6>Typography</h6>
+    <div class="font-size-selector">
+      <label for="fontSize">Font Size</label>
+      <select id="fontSize" formControlName="fontSize" class="form-select">
+        <option value="small">Small</option>
+        <option value="medium">Medium</option>
+        <option value="large">Large</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Border Radius Settings -->
+  <div class="settings-section">
+    <h6>Border Style</h6>
+    <div class="border-selector">
+      <div class="border-option" *ngFor="let style of ['sharp', 'rounded', 'circular']">
+        <input 
+          type="radio" 
+          [id]="'border-' + style" 
+          name="borderStyle" 
+          [value]="style"
+          [formControlName]="'borderRadius'"
+        >
+        <label [for]="'border-' + style" class="border-label">
+          <div class="border-preview" [class]="style"></div>
+          <span>{{ getBorderRadiusDisplay(style) }}</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Animation Settings -->
+  <div class="settings-section">
+    <h6>Animations & Effects</h6>
+    <div class="toggle-group">
+      <div class="toggle-item">
+        <label class="toggle-switch">
+          <input type="checkbox" formControlName="animations">
+          <span class="toggle-slider"></span>
+        </label>
+        <span>Enable Animations</span>
+      </div>
+      
+      <div class="toggle-item">
+        <label class="toggle-switch">
+          <input type="checkbox" formControlName="reducedMotion">
+          <span class="toggle-slider"></span>
+        </label>
+        <span>Reduced Motion</span>
+      </div>
+      
+      <div class="toggle-item">
+        <label class="toggle-switch">
+          <input type="checkbox" formControlName="highContrast">
+          <span class="toggle-slider"></span>
+        </label>
+        <span>High Contrast</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Colors -->
+  <div class="settings-section">
+    <h6>Custom Colors</h6>
+    <div class="custom-colors">
+      <div *ngIf="customColorEntries.length === 0" class="no-custom-colors">
+        <p>No custom colors added yet</p>
+      </div>
+      <div *ngFor="let color of customColorEntries" class="custom-color-item">
+        <div class="color-info">
+          <span class="color-name">{{ color.name }}</span>
+          <span class="color-value">{{ color.value }}</span>
+        </div>
+        <button 
+          type="button" 
+          class="remove-color"
+          (click)="removeCustomColor(color.name)"
+          title="Remove color"
+        >
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="settings-actions">
+    <div class="action-buttons">
+      <button type="button" class="btn btn-outline-primary" (click)="resetToDefault()">
+        <i class="bi bi-arrow-clockwise"></i>
+        Reset to Default
+      </button>
+      
+      <button type="button" class="btn btn-outline-secondary" (click)="exportTheme()">
+        <i class="bi bi-download"></i>
+        Export Theme
+      </button>
+      
+      <label class="btn btn-outline-secondary">
+        <i class="bi bi-upload"></i>
+        Import Theme
+        <input type="file" accept=".json" (change)="importTheme($event)" style="display: none;">
+      </label>
+    </div>
+    
+    <div class="quick-actions">
+      <button type="button" class="btn btn-primary" (click)="toggleTheme()">
+        <i class="bi bi-moon-stars"></i>
+        Toggle Theme
+      </button>
+    </div>
+  </div>
+</div>

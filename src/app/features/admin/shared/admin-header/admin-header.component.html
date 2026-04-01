@@ -1,0 +1,32 @@
+<header class="admin-header">
+  <div class="admin-header-content">
+    <!-- Left Section - Store Signature -->
+    <div class="header-brand">
+      <div class="brand-logo">
+        <i class="bi bi-lightning-charge-fill"></i>
+      </div>
+      <div class="brand-info">
+        <h1 class="brand-name">OUR-Bikes</h1>
+        <span class="brand-tagline">Admin Control Center</span>
+      </div>
+    </div>
+
+    <!-- Right Section - User & Actions -->
+    <div class="header-actions">
+      <div class="user-profile" *ngIf="currentUser()">
+        <div class="user-avatar">
+          <i class="bi bi-person-circle"></i>
+        </div>
+        <div class="user-details">
+          <span class="user-name">{{ currentUser().name || 'Administrator' }}</span>
+          <span class="user-role">{{ currentUser().role || 'admin' }}</span>
+        </div>
+      </div>
+      
+      <button class="logout-btn" (click)="logout()" title="Logout">
+        <i class="bi bi-power"></i>
+        <span>Logout</span>
+      </button>
+    </div>
+  </div>
+</header>

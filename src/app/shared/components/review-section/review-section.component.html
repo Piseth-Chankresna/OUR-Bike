@@ -1,0 +1,268 @@
+<div class="review-section">
+  <!-- Review Statistics -->
+  <div class="review-stats" *ngIf="reviewStats && !isLoading">
+    <div class="row align-items-center">
+      <div class="col-md-4">
+        <div class="average-rating">
+          <div class="rating-number">{{ reviewStats.average.toFixed(1) }}</div>
+          <div class="rating-stars">
+            <i *ngFor="let star of getStars(reviewStats.average)" 
+               class="bi" 
+               [class]="star"></i>
+          </div>
+          <div class="rating-count">{{ reviewStats.total }} Reviews</div>
+        </div>
+      </div>
+      <div class="col-md-8">
+        <div class="rating-bars">
+          <div class="rating-bar" *ngFor="let rating of [5, 4, 3, 2, 1]">
+            <div class="rating-label">{{ rating }} <i class="bi bi-star-fill"></i></div>
+            <div class="rating-progress">
+              <div class="progress">
+                <div class="progress-bar" 
+                     [style.width.%]="getRatingPercentage(rating)"></div>
+              </div>
+            </div>
+            <div class="rating-count">{{ reviewStats.distribution[rating] || 0 }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Review Actions -->
+  <div class="review-actions mb-4">
+    <div class="row align-items-center">
+      <div class="col-md-6">
+        <button class="btn btn-primary" 
+                (click)="toggleReviewForm()" 
+                *ngIf="!userReview">
+          <i class="bi bi-pencil me-2"></i>
+          Write a Review
+        </button>
+        <div class="user-review-status" *ngIf="userReview">
+          <span class="badge bg-success">You have reviewed this product</span>
+          <button class="btn btn-sm btn-outline-primary ms-2" (click)="toggleReviewForm()">
+            <i class="bi bi-pencil me-1"></i>
+            Edit Review
+          </button>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="filter-controls">
+          <div class="row g-2">
+            <div class="col-auto">
+              <select class="form-select form-select-sm" 
+                      (change)="onSortChange($any($event.target).value)">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="highest">Highest Rating</option>
+                <option value="lowest">Lowest Rating</option>
+                <option value="helpful">Most Helpful</option>
+              </select>
+            </div>
+            <div class="col-auto">
+              <div class="form-check form-switch">
+                <input type="checkbox" 
+                       class="form-check-input" 
+                       id="verifiedFilter"
+                       [checked]="reviewFilter.verified"
+                       (change)="onVerifiedFilterChange()">
+                <label class="form-check-label" for="verifiedFilter">
+                  Verified Only
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rating Filter Pills -->
+  <div class="rating-filters mb-4">
+    <button class="btn btn-sm" 
+            [class.btn-primary]="reviewFilter.rating === 0"
+            [class.btn-outline-primary]="reviewFilter.rating !== 0"
+            (click)="onRatingFilterChange(0)">
+      All Stars
+    </button>
+    <button class="btn btn-sm" 
+            *ngFor="let rating of [5, 4, 3, 2, 1]"
+            [class.btn-primary]="reviewFilter.rating === rating"
+            [class.btn-outline-primary]="reviewFilter.rating !== rating"
+            (click)="onRatingFilterChange(rating)">
+      {{ rating }} <i class="bi bi-star-fill"></i>
+    </button>
+    <button class="btn btn-sm btn-outline-secondary" 
+            (click)="clearFilters()"
+            *ngIf="reviewFilter.rating > 0 || reviewFilter.verified">
+      <i class="bi bi-x me-1"></i>
+      Clear Filters
+    </button>
+  </div>
+
+  <!-- Review Form -->
+  <div class="review-form" *ngIf="showReviewForm">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-pencil me-2"></i>
+          {{ userReview ? 'Edit Your Review' : 'Write a Review' }}
+        </h5>
+      </div>
+      <div class="card-body">
+        <form [formGroup]="reviewForm" (ngSubmit)="submitReview()">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Rating</label>
+              <div class="rating-input">
+                <i *ngFor="let star of [1, 2, 3, 4, 5]" 
+                   class="bi bi-star" 
+                   [class.bi-star-fill]="star <= reviewForm.value.rating"
+                   [class.text-warning]="star <= reviewForm.value.rating"
+                   (click)="reviewForm.get('rating')?.setValue(star)"
+                   style="cursor: pointer; font-size: 1.5rem; margin-right: 5px;"></i>
+              </div>
+              <div *ngIf="reviewForm.get('rating')?.invalid && reviewForm.get('rating')?.touched" 
+                   class="invalid-feedback">
+                Please select a rating
+              </div>
+            </div>
+            <div class="col-12">
+              <label for="reviewTitle" class="form-label">Title</label>
+              <input type="text" 
+                     id="reviewTitle" 
+                     class="form-control" 
+                     formControlName="title"
+                     placeholder="Summarize your experience">
+              <div *ngIf="reviewForm.get('title')?.invalid && reviewForm.get('title')?.touched" 
+                   class="invalid-feedback">
+                Title is required (3-100 characters)
+              </div>
+            </div>
+            <div class="col-12">
+              <label for="reviewContent" class="form-label">Review</label>
+              <textarea id="reviewContent" 
+                        class="form-control" 
+                        formControlName="content"
+                        rows="4"
+                        placeholder="Tell us about your experience with this product"></textarea>
+              <div *ngIf="reviewForm.get('content')?.invalid && reviewForm.get('content')?.touched" 
+                   class="invalid-feedback">
+                Review is required (10-1000 characters)
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="form-actions">
+                <button type="submit" 
+                        class="btn btn-primary" 
+                        [disabled]="reviewForm.invalid || submittingReview">
+                  <i class="bi bi-check me-2"></i>
+                  {{ submittingReview ? 'Submitting...' : 'Submit Review' }}
+                </button>
+                <button type="button" 
+                        class="btn btn-outline-secondary" 
+                        (click)="cancelReview()">
+                  <i class="bi bi-x me-2"></i>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading reviews...</span>
+      </div>
+      <p class="mt-3 text-secondary">Loading reviews...</p>
+    </div>
+  </div>
+
+  <!-- Reviews List -->
+  <div *ngIf="!isLoading" class="reviews-list">
+    <div *ngIf="getPaginatedReviews().length === 0" class="empty-reviews">
+      <div class="text-center py-5">
+        <div class="empty-icon">
+          <i class="bi bi-chat-square-text"></i>
+        </div>
+        <h5>No Reviews Yet</h5>
+        <p>Be the first to review this product!</p>
+        <button class="btn btn-primary" (click)="toggleReviewForm()" *ngIf="!userReview">
+          <i class="bi bi-pencil me-2"></i>
+          Write a Review
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="getPaginatedReviews().length > 0">
+      <div class="review-item" *ngFor="let review of getPaginatedReviews()">
+        <div class="review-header">
+          <div class="reviewer-info">
+            <div class="reviewer-name">
+              {{ review.userName }}
+              <span class="badge bg-success ms-2" *ngIf="review.verified">
+                <i class="bi bi-check-circle me-1"></i>
+                Verified
+              </span>
+            </div>
+            <div class="review-date">{{ formatDate(review.createdAt) }}</div>
+          </div>
+          <div class="review-rating">
+            <i *ngFor="let star of getStars(review.rating)" 
+               class="bi" 
+               [class]="star"></i>
+          </div>
+        </div>
+        <div class="review-body">
+          <h6 class="review-title">{{ review.title }}</h6>
+          <p class="review-content">{{ review.content }}</p>
+        </div>
+        <div class="review-footer">
+          <div class="helpful-buttons">
+            <span class="helpful-text">Was this review helpful?</span>
+            <button class="btn btn-sm btn-outline-success" 
+                    (click)="markHelpful(review.id)">
+              <i class="bi bi-hand-thumbs-up me-1"></i>
+              Yes ({{ review.helpful }})
+            </button>
+            <button class="btn btn-sm btn-outline-danger" 
+                    (click)="markNotHelpful(review.id)">
+              <i class="bi bi-hand-thumbs-down me-1"></i>
+              No ({{ review.notHelpful }})
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination-wrapper" *ngIf="totalPages > 1">
+        <nav>
+          <ul class="pagination justify-content-center">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <button class="page-link" (click)="changePage(currentPage - 1)">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+            </li>
+            <li class="page-item" 
+                *ngFor="let page of getPageNumbers()"
+                [class.active]="page === currentPage">
+              <button class="page-link" (click)="changePage(page)">{{ page }}</button>
+            </li>
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <button class="page-link" (click)="changePage(currentPage + 1)">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>

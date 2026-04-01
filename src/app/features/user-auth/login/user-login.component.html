@@ -1,0 +1,144 @@
+<div class="user-login-container">
+  <div class="user-login-card glass-effect">
+    <!-- User Logo and Title -->
+    <div class="text-center mb-4">
+      <div class="user-logo mb-3">
+        <i class="bi bi-person-circle"></i>
+      </div>
+      <h1 class="heading-2">Welcome Back</h1>
+      <p class="text-secondary">Sign in to your OUR-Bikes account</p>
+    </div>
+
+    <!-- Success Message -->
+    <div *ngIf="successMessage" class="alert alert-success fade-in" role="alert">
+      <i class="bi bi-check-circle me-2"></i>
+      {{ successMessage }}
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="alert alert-danger fade-in" role="alert">
+      <i class="bi bi-exclamation-triangle me-2"></i>
+      {{ errorMessage }}
+    </div>
+
+    <!-- User Login Form -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="user-login-form">
+      <!-- Email Field -->
+      <div class="form-group mb-3">
+        <label for="email" class="form-label">
+          <i class="bi bi-envelope me-2"></i>Email Address
+        </label>
+        <input
+          type="email"
+          id="email"
+          class="form-control input-custom"
+          formControlName="email"
+          placeholder="Enter your email"
+          [class.is-invalid]="email?.invalid && email?.touched"
+          autocomplete="email"
+        >
+        <div *ngIf="email?.invalid && email?.touched" class="invalid-feedback">
+          {{ getEmailErrorMessage() }}
+        </div>
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group mb-3">
+        <label for="password" class="form-label">
+          <i class="bi bi-lock me-2"></i>Password
+        </label>
+        <div class="password-input-wrapper">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            id="password"
+            class="form-control input-custom"
+            formControlName="password"
+            placeholder="Enter your password"
+            [class.is-invalid]="password?.invalid && password?.touched"
+            autocomplete="current-password"
+          >
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="togglePasswordVisibility()"
+            tabindex="-1"
+          >
+            <i [class]="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+          </button>
+        </div>
+        <div *ngIf="password?.invalid && password?.touched" class="invalid-feedback">
+          {{ getPasswordErrorMessage() }}
+        </div>
+      </div>
+
+      <!-- Remember Me & Forgot Password -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="form-check mb-3">
+          <input type="checkbox" id="remember" class="form-check-input">
+          <label for="remember" class="form-check-label text-secondary">
+            Remember me
+          </label>
+        </div>
+      </div>
+
+      <!-- Forgot Password -->
+      <div class="text-end mb-3">
+        <a routerLink="/auth/forgot-password" class="text-primary text-decoration-none">
+          <i class="bi bi-question-circle me-1"></i>
+          Forgot Password?
+        </a>
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        class="btn btn-user-primary w-100 mb-3"
+        [disabled]="loginForm.invalid || isLoading"
+      >
+        <span *ngIf="!isLoading">
+          <i class="bi bi-box-arrow-in-right me-2"></i>
+          Sign In
+        </span>
+        <span *ngIf="isLoading">
+          <span class="spinner spinner-border spinner-border-sm me-2" role="status"></span>
+          Signing in...
+        </span>
+      </button>
+
+      <!-- Divider -->
+      <div class="text-center mb-3">
+        <span class="text-secondary">OR</span>
+      </div>
+
+      <!-- Social Login -->
+      <div class="social-login mb-4">
+        <button type="button" class="btn btn-outline-custom w-100 mb-2" (click)="loginWithGoogle()">
+          <i class="bi bi-google me-2"></i>
+          Continue with Google
+        </button>
+        <button type="button" class="btn btn-outline-custom w-100" (click)="loginWithFacebook()">
+          <i class="bi bi-facebook me-2"></i>
+          Continue with Facebook
+        </button>
+      </div>
+    </form>
+
+    <!-- Navigation Options -->
+    <div class="navigation-options mt-4">
+      <div class="text-center">
+        <p class="text-secondary mb-0">
+          Don't have an account? 
+          <a routerLink="/auth/user/register" class="text-primary text-decoration-none fw-bold">
+            Register here
+          </a>
+        </p>
+      </div>
+      <div class="text-center mt-3">
+        <a routerLink="/" class="text-primary text-decoration-none">
+          <i class="bi bi-house me-1"></i>
+          Back to Home
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

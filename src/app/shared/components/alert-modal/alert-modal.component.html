@@ -1,0 +1,26 @@
+<div class="alert-modal-overlay" *ngIf="isVisible" (click)="onOverlayClick($event)">
+  <div class="alert-modal glass-effect">
+    <div class="alert-modal-header">
+      <h5 class="alert-modal-title">{{ title }}</h5>
+      <button class="alert-modal-close" (click)="onCancel()">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+    
+    <div class="alert-modal-body">
+      <div class="alert-modal-icon">
+        <i class="bi bi-info-circle"></i>
+      </div>
+      <p class="alert-modal-message">{{ message }}</p>
+    </div>
+    
+    <div class="alert-modal-footer">
+      <button class="btn btn-outline-custom" (click)="onCancel()">
+        {{ cancelText }}
+      </button>
+      <button class="btn btn-primary-custom" (click)="onConfirm()">
+        {{ confirmText }}
+      </button>
+    </div>
+  </div>
+</div>

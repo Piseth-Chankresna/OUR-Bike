@@ -1,0 +1,258 @@
+.admin-login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+    pointer-events: none;
+  }
+
+  .admin-login-card {
+    max-width: 450px;
+    width: 100%;
+    padding: 45px;
+    border-radius: 15px;
+    background: rgba(22, 33, 62, 0.95);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    position: relative;
+    z-index: 1;
+
+    .password-input-wrapper {
+      position: relative;
+      
+      .password-toggle-btn {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+        z-index: 10;
+
+        &:hover {
+          color: rgba(255, 255, 255, 0.9);
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        i {
+          font-size: 1.1rem;
+        }
+      }
+
+      .form-control {
+        padding-right: 45px;
+      }
+    }
+
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    backdrop-filter: blur(10px);
+
+    .logo {
+      font-size: 3.5rem;
+      color: #ffd700;
+      margin-bottom: 1.5rem;
+      display: inline-block;
+      animation: adminPulse 3s infinite;
+      text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    }
+
+    .heading-2 {
+      color: #ffd700;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      font-size: 2.2rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .text-secondary {
+      color: #a8b2d1 !important;
+      font-weight: 500;
+    }
+
+    .form-label {
+      color: #e2e8f0;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 0.85rem;
+    }
+
+    .input-custom {
+      background: rgba(15, 52, 96, 0.6);
+      border: 2px solid rgba(255, 215, 0, 0.2);
+      color: #e2e8f0;
+      border-radius: 8px;
+      padding: 15px;
+      transition: all 0.3s ease;
+      font-weight: 500;
+
+      &::placeholder {
+        color: #64748b;
+      }
+
+      &:focus {
+        background: rgba(15, 52, 96, 0.8);
+        border-color: #ffd700;
+        box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.3);
+        color: #fff;
+      }
+
+      &.is-invalid {
+        border-color: #dc3545;
+        background: rgba(220, 53, 69, 0.1);
+      }
+    }
+
+    .btn-admin-primary {
+      background: linear-gradient(135deg, #ffd700 0%, #ffb700 50%, #ff9500 100%);
+      border: none;
+      color: #1a1a2e;
+      padding: 18px 25px;
+      border-radius: 8px;
+      font-weight: 700;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 1rem;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.6s;
+      }
+
+      &:hover::before {
+        left: 100%;
+      }
+
+      &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(255, 215, 0, 0.4);
+        background: linear-gradient(135deg, #ffb700 0%, #ffd700 50%, #ff9500 100%);
+      }
+
+      &:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+      }
+    }
+
+    .navigation-options {
+      margin-top: 30px;
+      padding-top: 25px;
+      border-top: 1px solid rgba(255, 215, 0, 0.2);
+
+      a {
+        color: #ffd700;
+        transition: all 0.3s ease;
+        display: inline-block;
+        padding: 8px 15px;
+        border-radius: 5px;
+        font-weight: 600;
+
+        &:hover {
+          background: rgba(255, 215, 0, 0.1);
+          transform: translateY(-2px);
+        }
+      }
+    }
+
+    .invalid-feedback {
+      color: #ff6b6b;
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+      font-weight: 500;
+    }
+
+    .alert {
+      border-radius: 8px;
+      border: none;
+      padding: 18px;
+      margin-bottom: 25px;
+
+      &.alert-success {
+        background: rgba(40, 167, 69, 0.15);
+        color: #28a745;
+        border: 1px solid rgba(40, 167, 69, 0.4);
+      }
+
+      &.alert-danger {
+        background: rgba(220, 53, 69, 0.15);
+        color: #dc3545;
+        border: 1px solid rgba(220, 53, 69, 0.4);
+      }
+    }
+  }
+}
+
+@keyframes adminPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+  }
+  50% {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
+  }
+}
+
+.fade-in {
+  animation: adminFadeIn 0.6s ease-in;
+}
+
+@keyframes adminFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .admin-login-container {
+    padding: 10px;
+
+    .admin-login-card {
+      padding: 35px 25px;
+
+      .logo {
+        font-size: 3rem;
+      }
+
+      .heading-2 {
+        font-size: 1.8rem;
+      }
+    }
+  }
+}

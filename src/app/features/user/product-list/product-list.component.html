@@ -1,0 +1,229 @@
+<div class="product-list-page">
+  <!-- Loading State -->
+  <div class="loading-state text-center py-5" *ngIf="isLoading">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading products...</span>
+    </div>
+    <p class="mt-3 text-secondary">Loading amazing products...</p>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container-custom py-4" *ngIf="!isLoading">
+    <!-- Page Header -->
+    <div class="page-header mb-4">
+      <h1 class="page-title">Products</h1>
+      <p class="page-subtitle">Discover our amazing collection of motorcycles and accessories</p>
+    </div>
+
+    <!-- Filters and Sort Section -->
+    <div class="filters-section mb-4">
+      <div class="row">
+        <div class="col-lg-3 col-md-4">
+          <!-- Filters Sidebar -->
+          <div class="filters-sidebar">
+            <div class="filter-card">
+              <h5 class="filter-title">Filters</h5>
+              
+              <form [formGroup]="filterForm" class="filter-form">
+                <!-- Search -->
+                <div class="filter-group">
+                  <label class="filter-label">Search</label>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    placeholder="Search products..."
+                    formControlName="search"
+                  >
+                </div>
+
+                <!-- Category Filter -->
+                <div class="filter-group">
+                  <label class="filter-label">Category</label>
+                  <select class="form-select" formControlName="category">
+                    <option *ngFor="let category of categories" [value]="category.id">
+                      {{ category.name }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Price Range Filter -->
+                <div class="filter-group">
+                  <label class="filter-label">Price Range</label>
+                  <div class="price-range-filters">
+                    <div class="form-check" *ngFor="let range of priceRanges">
+                      <input 
+                        class="form-check-input" 
+                        type="radio" 
+                        name="priceRange"
+                        [id]="'price-' + range.min"
+                        [checked]="filterForm.value.minPrice === range.min && filterForm.value.maxPrice === range.max"
+                        (change)="filterForm.patchValue({minPrice: range.min, maxPrice: range.max})"
+                      >
+                      <label class="form-check-label" [for]="'price-' + range.min">
+                        {{ range.label }}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Stock Filter -->
+                <div class="filter-group">
+                  <div class="form-check">
+                    <input 
+                      class="form-check-input" 
+                      type="checkbox" 
+                      id="inStock"
+                      formControlName="inStock"
+                    >
+                    <label class="form-check-label" for="inStock">
+                      In Stock Only
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Rating Filter -->
+                <div class="filter-group">
+                  <label class="filter-label">Minimum Rating</label>
+                  <div class="rating-filters">
+                    <div class="form-check" *ngFor="let rating of ratings">
+                      <input 
+                        class="form-check-input" 
+                        type="radio" 
+                        name="rating"
+                        [id]="'rating-' + rating"
+                        [checked]="filterForm.value.rating === rating"
+                        (change)="filterForm.patchValue({rating: rating})"
+                      >
+                      <label class="form-check-label" [for]="'rating-' + rating">
+                        <span class="stars">
+                          <i class="bi bi-star-fill" *ngFor="let star of getStars(rating)"></i>
+                          <i class="bi bi-star" *ngFor="let star of getStars(5 - rating)"></i>
+                        </span>
+                        & Up
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Clear Filters -->
+                <button type="button" class="btn btn-outline-secondary btn-sm w-100" (click)="clearFilters()">
+                  Clear All Filters
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-9 col-md-8">
+          <!-- Sort and Results Count -->
+          <div class="sort-section mb-4">
+            <div class="row align-items-center">
+              <div class="col-md-6">
+                <p class="results-count mb-0">
+                  Showing {{ paginatedProducts.length }} of {{ filteredProducts.length }} products
+                </p>
+              </div>
+              <div class="col-md-6">
+                <div class="sort-controls">
+                  <label class="sort-label me-2">Sort by:</label>
+                  <select class="form-select form-select-sm me-2" #sortSelect (change)="onSortChange(sortSelect.value)">
+                    <option value="name">Name</option>
+                    <option value="price">Price</option>
+                    <option value="rating">Rating</option>
+                    <option value="newest">Newest</option>
+                  </select>
+                  <button class="btn btn-outline-secondary btn-sm" (click)="onSortOrderChange()">
+                    <i class="bi bi-sort-{{ sortOrder === 'asc' ? 'down' : 'up' }}"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Products Grid -->
+          <div class="products-grid" *ngIf="paginatedProducts.length > 0">
+            <div class="product-card" *ngFor="let product of paginatedProducts">
+              <div class="product-image">
+                <img [src]="getProductImage(product)" [alt]="product.name" />
+                <div class="product-badges">
+                  <span class="badge bg-danger" *ngIf="!product.inStock">Out of Stock</span>
+                  <span class="badge bg-warning" *ngIf="product.featured">Featured</span>
+                </div>
+                <div class="product-actions">
+                  <button class="btn btn-icon btn-light" 
+                          (click)="addToFavorites(product.id)"
+                          title="Add to Favorites">
+                    <i class="bi bi-heart"></i>
+                  </button>
+                  <button class="btn btn-icon btn-primary" 
+                          (click)="addToCart(product.id)"
+                          title="Add to Cart"
+                          [disabled]="!product.inStock">
+                    <i class="bi bi-cart-plus"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="product-info">
+                <h3 class="product-name">{{ product.name }}</h3>
+                <p class="product-description">{{ product.description }}</p>
+                <div class="product-meta">
+                  <div class="product-rating" *ngIf="product.rating">
+                    <span class="stars">
+                      <i class="bi bi-star-fill" *ngFor="let star of getStars(product.rating)"></i>
+                      <i class="bi bi-star" *ngFor="let star of getStars(5 - product.rating)"></i>
+                    </span>
+                    <span class="rating-text">({{ product.reviews || 0 }})</span>
+                  </div>
+                  <div class="product-price">${{ product.price }}</div>
+                </div>
+                <div class="product-actions-bottom">
+                  <button class="btn btn-outline-primary btn-sm flex-grow-1" routerLink="/product/{{ product.id }}">
+                    View Details
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- No Results -->
+          <div class="no-results" *ngIf="paginatedProducts.length === 0">
+            <div class="no-results-content">
+              <i class="bi bi-search no-results-icon"></i>
+              <h4>No products found</h4>
+              <p>Try adjusting your filters or search terms</p>
+              <button class="btn btn-primary" (click)="clearFilters()">Clear Filters</button>
+            </div>
+          </div>
+
+          <!-- Pagination -->
+          <div class="pagination-section" *ngIf="totalPages > 1">
+            <nav aria-label="Product pagination">
+              <ul class="pagination justify-content-center">
+                <!-- Previous -->
+                <li class="page-item" [class.disabled]="currentPage === 1">
+                  <button class="page-link" (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1">
+                    <i class="bi bi-chevron-left"></i>
+                  </button>
+                </li>
+
+                <!-- Page Numbers -->
+                <li class="page-item" 
+                    *ngFor="let page of getPages()" 
+                    [class.active]="page === currentPage">
+                  <button class="page-link" (click)="onPageChange(page)">{{ page }}</button>
+                </li>
+
+                <!-- Next -->
+                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                  <button class="page-link" (click)="onPageChange(currentPage + 1)" [disabled]="currentPage === totalPages">
+                    <i class="bi bi-chevron-right"></i>
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

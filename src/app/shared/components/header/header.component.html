@@ -1,0 +1,235 @@
+<header class="main-header" [class.scrolled]="isScrolled" id="mainHeader">
+  <div class="header-container">
+    <nav class="navbar">
+      <!-- Premium Brand Section -->
+      <div class="navbar-brand">
+        <a routerLink="/" class="logo-link">
+          <div class="brand-logo">
+            <i class="bi bi-lightning-charge-fill"></i>
+          </div>
+          <div class="brand-content">
+            <h1 class="logo-text">OUR-Bikes</h1>
+            <p class="logo-tagline">Ride the Future</p>
+          </div>
+        </a>
+      </div>
+
+      <!-- Enhanced Search Section -->
+      <div class="navbar-search">
+        <app-search></app-search>
+      </div>
+
+      <!-- Navigation for Guest Users -->
+      <div class="navbar-nav d-none d-lg-flex">
+        <ng-container *ngIf="!(isAuthenticated$ | async)">
+          <div class="nav-row">
+            <div class="nav-item dropdown shop-dropdown">
+              <button class="nav-link dropdown-toggle" type="button" (click)="toggleShopDropdown()">
+                <i class="bi bi-shop"></i>
+                <span>Shop</span>
+                <i class="bi bi-chevron-down dropdown-arrow"></i>
+              </button>
+              <ul class="dropdown-menu" [class.show]="isShopDropdownOpen" aria-labelledby="shopDropdown">
+                <li class="dropdown-header">Categories</li>
+                <li><a class="dropdown-item" routerLink="/products" routerLinkActive="active" (click)="closeShopDropdown()">
+                  <i class="bi bi-grid-3x3-gap"></i>All Products
+                </a></li>
+                <li><a class="dropdown-item" routerLink="/products" [queryParams]="{category:'bikes'}" (click)="closeShopDropdown()">
+                  <i class="bi bi-bicycle"></i>Bikes
+                </a></li>
+                <li><a class="dropdown-item" routerLink="/products" [queryParams]="{category:'accessory'}" (click)="closeShopDropdown()">
+                  <i class="bi bi-bag"></i>Accessories
+                </a></li>
+                <li><a class="dropdown-item" routerLink="/products" [queryParams]="{category:'souvenir'}" (click)="closeShopDropdown()">
+                  <i class="bi bi-gift"></i>Souvenirs
+                </a></li>
+                <li><a class="dropdown-item" routerLink="/products" [queryParams]="{category:'tool'}" (click)="closeShopDropdown()">
+                  <i class="bi bi-tools"></i>Tools
+                </a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" routerLink="/admin" (click)="closeShopDropdown()">
+                  <i class="bi bi-gear"></i>Admin Panel
+                </a></li>
+              </ul>
+            </div>
+            
+            <div class="nav-item">
+              <button class="nav-link action-btn" (click)="onFavoritesClick()">
+                <i class="bi bi-heart"></i>
+                <span>Favorites</span>
+              </button>
+            </div>
+            
+            <div class="nav-item">
+              <button class="nav-link action-btn" (click)="onCartClick()">
+                <i class="bi bi-cart3"></i>
+                <span>Cart</span>
+              </button>
+            </div>
+            
+            <div class="nav-divider"></div>
+            
+            <div class="nav-item">
+              <button class="nav-link login-btn" routerLink="/auth/login">
+                <i class="bi bi-box-arrow-in-right"></i>
+                <span>Login</span>
+              </button>
+            </div>
+            
+            <div class="nav-item">
+              <button class="nav-link signup-btn" routerLink="/auth/register">
+                <i class="bi bi-person-plus"></i>
+                <span>Sign Up</span>
+              </button>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- Navigation for Authenticated Users -->
+        <ng-container *ngIf="isAuthenticated$ | async">
+          <div class="nav-row">
+            <div class="nav-item dropdown shop-dropdown">
+              <button class="nav-link dropdown-toggle" type="button" (click)="toggleShopDropdown()">
+                <i class="bi bi-shop"></i>
+                <span>Shop</span>
+                <i class="bi bi-chevron-down dropdown-arrow"></i>
+              </button>
+              <ul class="dropdown-menu" [class.show]="isShopDropdownOpen" aria-labelledby="shopDropdown">
+                <li class="dropdown-header">Categories</li>
+                <li><a class="dropdown-item" routerLink="/products" routerLinkActive="active" (click)="closeShopDropdown()">
+                  <i class="bi bi-grid-3x3-gap"></i>All Products
+                </a></li>
+                <li><a class="dropdown-item" routerLink="/products" [queryParams]="{category:'bikes'}" (click)="closeShopDropdown()">
+                  <i class="bi bi-bicycle"></i>Bikes
+                </a></li>
+                <li><a class="dropdown-item" routerLink="/products" [queryParams]="{category:'accessory'}" (click)="closeShopDropdown()">
+                  <i class="bi bi-bag"></i>Accessories
+                </a></li>
+                <li><a class="dropdown-item" routerLink="/products" [queryParams]="{category:'souvenir'}" (click)="closeShopDropdown()">
+                  <i class="bi bi-gift"></i>Souvenirs
+                </a></li>
+                <li><a class="dropdown-item" routerLink="/products" [queryParams]="{category:'tool'}" (click)="closeShopDropdown()">
+                  <i class="bi bi-tools"></i>Tools
+                </a></li>
+              </ul>
+            </div>
+
+            <div class="nav-item">
+              <button class="nav-link feature-enabled" (click)="onFavoritesClick()">
+                <i class="bi bi-heart-fill"></i>
+                <span>Favorites</span>
+                <span class="badge notification-badge">{{ favoritesCount }}</span>
+              </button>
+            </div>
+
+            <div class="nav-item">
+              <button class="nav-link feature-enabled" (click)="onCartClick()">
+                <i class="bi bi-cart3-fill"></i>
+                <span>Cart</span>
+                <span class="badge notification-badge">{{ cartItemCount }}</span>
+              </button>
+            </div>
+
+            <div class="nav-item">
+              <app-notification-panel></app-notification-panel>
+            </div>
+
+            <div class="nav-item dropdown user-dropdown">
+              <button class="nav-link dropdown-toggle" type="button" (click)="toggleUserDropdown()">
+                <i class="bi bi-person-circle"></i>
+                <span>{{ (currentUser$ | async)?.fullName || 'Account' }}</span>
+                <i class="bi bi-chevron-down dropdown-arrow"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" [class.show]="isUserDropdownOpen" aria-labelledby="userDropdown">
+                <li class="dropdown-header">{{ (currentUser$ | async)?.fullName || 'My Account' }}</li>
+                <li><a class="dropdown-item" routerLink="/profile" (click)="closeUserDropdown()">
+                  <i class="bi bi-person"></i>My Profile
+                </a></li>
+                <li><a class="dropdown-item" routerLink="/orders" (click)="closeUserDropdown()">
+                  <i class="bi bi-box-seam"></i>My Orders
+                </a></li>
+                <li><a class="dropdown-item" routerLink="/favorites" (click)="closeUserDropdown()">
+                  <i class="bi bi-heart"></i>My Favorites
+                </a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" (click)="toggleTheme()">
+                  <i class="bi bi-moon-stars"></i>Toggle Theme
+                </a></li>
+                <li><a class="dropdown-item" (click)="logout()">
+                  <i class="bi bi-box-arrow-right"></i>Logout
+                </a></li>
+              </ul>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+
+      <!-- Mobile Menu Toggle -->
+      <button class="mobile-menu-toggle d-lg-none" (click)="toggleMobileMenu()">
+        <i class="bi bi-list" *ngIf="!isMobileMenuOpen"></i>
+        <i class="bi bi-x" *ngIf="isMobileMenuOpen"></i>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu d-lg-none" [class.show]="isMobileMenuOpen">
+    <div class="mobile-menu-content">
+      <div class="mobile-menu-header">
+        <div class="brand-logo">
+          <i class="bi bi-lightning-charge-fill"></i>
+          <span>OUR-Bikes</span>
+        </div>
+        <button class="close-menu" (click)="toggleMobileMenu()">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+      
+      <div class="mobile-menu-body">
+        <div class="mobile-nav-section">
+          <h6>Shop</h6>
+          <ul class="mobile-nav-list">
+            <li><a routerLink="/products" (click)="toggleMobileMenu()">All Products</a></li>
+            <li><a routerLink="/products" [queryParams]="{category:'bikes'}" (click)="toggleMobileMenu()">Bikes</a></li>
+            <li><a routerLink="/products" [queryParams]="{category:'accessory'}" (click)="toggleMobileMenu()">Accessories</a></li>
+            <li><a routerLink="/products" [queryParams]="{category:'souvenir'}" (click)="toggleMobileMenu()">Souvenirs</a></li>
+            <li><a routerLink="/products" [queryParams]="{category:'tool'}" (click)="toggleMobileMenu()">Tools</a></li>
+          </ul>
+        </div>
+
+        <ng-container *ngIf="!(isAuthenticated$ | async)">
+          <div class="mobile-nav-section">
+            <h6>Account</h6>
+            <ul class="mobile-nav-list">
+              <li><a routerLink="/auth/login" (click)="toggleMobileMenu()">Login</a></li>
+              <li><a routerLink="/auth/register" (click)="toggleMobileMenu()">Sign Up</a></li>
+            </ul>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="isAuthenticated$ | async">
+          <div class="mobile-nav-section">
+            <h6>Account</h6>
+            <ul class="mobile-nav-list">
+              <li><a routerLink="/profile" (click)="toggleMobileMenu()">My Profile</a></li>
+              <li><a routerLink="/orders" (click)="toggleMobileMenu()">My Orders</a></li>
+              <li><a routerLink="/favorites" (click)="toggleMobileMenu()">My Favorites</a></li>
+              <li><a (click)="toggleTheme()">Toggle Theme</a></li>
+              <li><a (click)="logout()">Logout</a></li>
+            </ul>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</header>
+
+<app-alert-modal
+  [isVisible]="showAlertModal"
+  [title]="'Login Required'"
+  [message]="alertModalMessage"
+  [confirmText]="'Login'"
+  [cancelText]="'Cancel'"
+  (confirm)="onAlertModalConfirm()"
+  (cancel)="onAlertModalCancel()">
+</app-alert-modal>
