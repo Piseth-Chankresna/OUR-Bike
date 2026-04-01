@@ -5,6 +5,7 @@ import { SeedDataService } from './core/services/seed-data-fixed.service';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { AdminHeaderComponent } from './features/admin/shared/admin-header/admin-header.component';
+import { ToastContainerComponent } from './shared/components/toast-container/toast-container.component';
 
 @Component({
   selector: 'app-root',
@@ -13,7 +14,8 @@ import { AdminHeaderComponent } from './features/admin/shared/admin-header/admin
     CommonModule,
     HeaderComponent,
     FooterComponent,
-    AdminHeaderComponent
+    AdminHeaderComponent,
+    ToastContainerComponent
   ],
   schemas: [], // Add schemas to suppress custom element warnings
   templateUrl: './app.html',

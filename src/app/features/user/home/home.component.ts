@@ -49,19 +49,19 @@ export class HomeComponent implements OnInit, OnDestroy {
   // Hero carousel images
   heroImages = [
     {
-      image: 'https://picsum.photos/seed/motorbike-hero/1200/600',
+      image: 'https://www.cyclenews.com/wp-content/uploads/2024/12/2025-250cc-4-Stroke-MX-Shootout.jpg',
       title: 'Premium Motorbikes',
       subtitle: 'Experience the thrill of riding',
       cta: 'Shop Now'
     },
     {
-      image: 'https://picsum.photos/seed/accessories-hero/1200/600',
+      image: 'https://i.ytimg.com/vi/Dcfk7SqDRkY/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLB9N7qKTG_5S33cxgqplGNjQthtpQ',
       title: 'Professional Accessories',
       subtitle: 'Gear up for safety and style',
       cta: 'Explore Gear'
     },
     {
-      image: 'https://picsum.photos/seed/souvenirs-hero/1200/600',
+      image: 'https://i.etsystatic.com/8837306/r/il/aed710/7293577056/il_fullxfull.7293577056_4b5r.jpg',
       title: 'Exclusive Souvenirs',
       subtitle: 'Take home the racing spirit',
       cta: 'View Collection'

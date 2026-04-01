@@ -1,10 +1,15 @@
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, signal, computed, inject, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+
+// Core Services
 import { AuthService } from '../../../core/services/auth.service';
 import { ThemeService } from '../../../core/services/theme.service';
-import { StorageService } from '../../../core/services/storage.service';
-import { Observable, Subject, takeUntil, BehaviorSubject } from 'rxjs';
+import { SimpleStorageService } from '../../../core/services/simple-storage.service';
+import { ToastNotificationService } from '../../../core/services/toast-notification.service';
+
+// Shared Components
 import { AlertModalComponent } from '../alert-modal/alert-modal.component';
 import { SearchComponent } from '../search/search.component';
 import { NotificationPanelComponent } from '../notification-panel/notification-panel.component';
@@ -12,170 +17,116 @@ import { NotificationPanelComponent } from '../notification-panel/notification-p
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, RouterModule, AlertModalComponent, SearchComponent, NotificationPanelComponent],
+  imports: [
+    CommonModule, 
+    RouterModule, 
+    AlertModalComponent, 
+    SearchComponent, 
+    NotificationPanelComponent
+  ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })
-export class HeaderComponent implements OnInit, OnDestroy {
-  isMobileMenuOpen = false;
-  isScrolled = false; // For modern scroll effect
-  cartItemCount = 0;
-  favoritesCount = 0;
+export class HeaderComponent implements OnInit {
+  // --- Service Injection (Modern Pattern) ---
+  private auth = inject(AuthService);
+  private router = inject(Router);
+  private theme = inject(ThemeService);
+  private storage = inject(SimpleStorageService);
+  private toast = inject(ToastNotificationService);
+
+  // --- UI State Signals ---
+  isScrolled = signal(false);
+  isMobileMenuOpen = signal(false);
+  isShopDropdownOpen = signal(false);
+  isUserDropdownOpen = signal(false);
   
-  // Custom dropdown functionality
-  isShopDropdownOpen = false;
-  isUserDropdownOpen = false;
+  // --- Data Signals ---
+  // Convert Observable to Signal for cleaner template access
+  currentUser = toSignal(this.auth.currentUser$);
+  isAuthenticated = computed(() => !!this.currentUser());
+  isAdmin = computed(() => this.auth.isAdmin());
   
-  showAlertModal = false;
-  alertModalMessage = '';
+  cartCount = signal(0);
+  favoritesCount = signal(0);
+
+  // --- Modal State ---
+  showAlertModal = signal(false);
+  alertModalMessage = signal('');
   alertModalFeature = '';
-  
-  private destroy$ = new Subject<void>();
 
-  // Hardware-optimized scroll listener
-  @HostListener('window:scroll', [])
+  @HostListener('window:scroll')
   onWindowScroll() {
-    this.isScrolled = window.scrollY > 30;
+    // Threshold for the glassmorphism effect
+    this.isScrolled.set(window.scrollY > 40);
   }
-
-  constructor(
-    private authService: AuthService,
-    private router: Router,
-    private themeService: ThemeService,
-    private storageService: StorageService
-  ) {}
 
   ngOnInit(): void {
-    // Subscribe to authentication changes
-    this.authService.currentUser$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((user: any) => {
-        if (user) {
-          this.loadUserData();
-        } else {
-          this.cartItemCount = 0;
-          this.favoritesCount = 0;
-        }
-      });
+    this.refreshCounts();
+    // Cross-tab synchronization
+    window.addEventListener('storage', (e) => {
+      if (e.key?.includes('cart') || e.key?.includes('favorites')) {
+        this.refreshCounts();
+      }
+    });
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  loadUserData(): void {
-    const currentUser = this.authService.getCurrentUserValue();
-    if (currentUser) {
-      // Load cart count
-      const cartData = this.storageService.getUserCart(currentUser.userId);
-      this.cartItemCount = cartData.items?.length || 0;
-      
-      // Load favorites count
-      const favoritesData = this.storageService.getUserFavorites(currentUser.userId);
-      this.favoritesCount = favoritesData.productIds?.length || 0;
+  refreshCounts(): void {
+    const user = this.currentUser();
+    if (user) {
+      this.cartCount.set(this.storage.getCartCount(user.userId));
+      this.favoritesCount.set(this.storage.getFavoritesCount(user.userId));
     }
   }
 
-  toggleMobileMenu(): void { 
-    this.isMobileMenuOpen = !this.isMobileMenuOpen; 
-  }
-  
-  closeMobileMenu(): void { 
-    this.isMobileMenuOpen = false; 
-  }
-  
-  onCartClick(): void { 
-    if (!this.authService.isAuthenticated()) { 
-      this.showLoginAlert('cart'); 
-      return; 
-    } 
-    this.router.navigate(['/cart']); 
-    this.closeMobileMenu(); 
-  }
-  
-  onFavoritesClick(): void { 
-    if (!this.authService.isAuthenticated()) { 
-      this.showLoginAlert('favorites'); 
-      return; 
-    } 
-    this.router.navigate(['/favorites']); 
-    this.closeMobileMenu(); 
-  }
-  
-  showLoginAlert(feature: string): void { 
-    this.alertModalFeature = feature; 
-    this.alertModalMessage = `Please login to access ${feature}`; 
-    this.showAlertModal = true; 
-  }
-  
-  onAlertModalConfirm(): void { 
-    this.showAlertModal = false; 
-    this.router.navigate(['/auth']); 
-    this.closeMobileMenu(); 
-  }
-  
-  onAlertModalCancel(): void { 
-    this.showAlertModal = false; 
-  }
-  
-  logout(): void { 
-    this.authService.logout(); 
-    this.closeMobileMenu(); 
-  }
-  
-  toggleTheme(): void { 
-    this.themeService.toggleTheme(); 
+  // --- Actions ---
+  toggleShopDropdown() { this.isShopDropdownOpen.update(v => !v); }
+  toggleUserDropdown() { this.isUserDropdownOpen.update(v => !v); }
+  toggleMobileMenu() { this.isMobileMenuOpen.update(v => !v); }
+
+  onCartClick(): void {
+    if (!this.isAuthenticated()) {
+      this.triggerAuthAlert('cart');
+    } else {
+      this.router.navigate(['/cart']);
+      this.isMobileMenuOpen.set(false);
+    }
   }
 
-  // Helper methods for template
-  get currentUser$() {
-    return this.authService.currentUser$;
+  onFavoritesClick(): void {
+    if (!this.isAuthenticated()) {
+      this.triggerAuthAlert('favorites');
+    } else {
+      this.router.navigate(['/favorites']);
+      this.isMobileMenuOpen.set(false);
+    }
   }
 
-  get isAuthenticated$() {
-    return new Observable<boolean>((observer) => {
-      observer.next(this.authService.isAuthenticated());
-      observer.complete();
-    });
+  private triggerAuthAlert(feature: string) {
+    this.alertModalFeature = feature;
+    this.alertModalMessage.set(`Please login to access your ${feature}`);
+    this.showAlertModal.set(true);
+    this.toast.showLoginRequired(`access your ${feature}`);
   }
 
-  get isAdmin$() {
-    return new Observable<boolean>((observer) => {
-      observer.next(this.authService.isAdmin());
-      observer.complete();
-    });
+  onAlertModalConfirm() {
+    this.showAlertModal.set(false);
+    this.router.navigate(['/auth/login']);
   }
 
-  // Custom dropdown methods
-  toggleShopDropdown(): void {
-    this.isShopDropdownOpen = !this.isShopDropdownOpen;
+  logout() {
+    this.auth.logout();
+    this.isMobileMenuOpen.set(false);
+    this.router.navigate(['/']);
   }
 
-  toggleUserDropdown(): void {
-    this.isUserDropdownOpen = !this.isUserDropdownOpen;
-  }
+  toggleTheme() { this.theme.toggleTheme(); }
 
-  closeShopDropdown(): void {
-    this.isShopDropdownOpen = false;
-  }
-
-  closeUserDropdown(): void {
-    this.isUserDropdownOpen = false;
-  }
-
+  // Close dropdowns when clicking outside
   @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
+  onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
-    const shopDropdownElement = document.querySelector('.shop-dropdown');
-    const userDropdownElement = document.querySelector('.user-dropdown');
-    
-    if (shopDropdownElement && !shopDropdownElement.contains(target)) {
-      this.closeShopDropdown();
-    }
-    
-    if (userDropdownElement && !userDropdownElement.contains(target)) {
-      this.closeUserDropdown();
-    }
+    if (!target.closest('.shop-dropdown')) this.isShopDropdownOpen.set(false);
+    if (!target.closest('.user-dropdown')) this.isUserDropdownOpen.set(false);
   }
 }
